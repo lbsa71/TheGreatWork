@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialogue Tree Generator - Web UI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🌳 Dialogue Tree Generator</h1>
+            <div class="status-bar" id="statusBar">
+                <span id="statusText">Loading...</span>
+                <button id="saveButton" class="btn btn-primary" disabled>💾 Save Tree</button>
+                <button id="refreshButton" class="btn btn-secondary">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="sidebar">
+                <div class="panel">
+                    <h3>📊 Tree Overview</h3>
+                    <div class="stats" id="treeStats">
+                        <div class="stat">
+                            <span class="stat-label">Total Nodes:</span>
+                            <span class="stat-value" id="totalNodes">-</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Completed:</span>
+                            <span class="stat-value" id="completedNodes">-</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Remaining:</span>
+                            <span class="stat-value" id="nullNodes">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>🌲 Tree Navigator</h3>
+                    <div class="tree-nav" id="treeNavigator">
+                        <!-- Tree navigation will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="node-viewer" id="nodeViewer">
+                    <div class="placeholder-message">
+                        <h3>🎭 Select a node to view details</h3>
+                        <p>Choose a node from the tree navigator to see its content and available actions.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading overlay -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Generating content...</p>
+            </div>
+        </div>
+
+        <!-- Toast notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

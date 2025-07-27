@@ -10,6 +10,8 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 
 - **Autonomous Generation**: Automatically fills incomplete dialogue nodes
 - **Local LLM Integration**: Uses Ollama for privacy and offline operation
+- **Web UI**: Interactive web interface for point-and-click dialogue tree management
+- **Console Mode**: Traditional command-line interface for batch processing
 - **Controlled Generation**: Limit the number of nodes generated with `--max-nodes`
 - **Comprehensive Testing**: Fully unit tested with mocked dependencies
 - **Backup System**: Creates timestamped backups in a dedicated `/backup` folder
@@ -69,13 +71,39 @@ scripts\setup.ps1
 
 ## Usage
 
-### Basic Usage
+### Web UI Mode (Recommended)
+
+Start the interactive web interface:
+
+```bash
+# Start web UI on default host and port (127.0.0.1:5000)
+python autofill_dialogue.py --web-ui
+
+# Start on custom host and port
+python autofill_dialogue.py --web-ui --host 0.0.0.0 --port 8080
+
+# Use a different model with web UI
+python autofill_dialogue.py --web-ui --model mistral
+```
+
+The web UI provides:
+- **Tree Navigator**: Visual overview of all nodes with completion status
+- **Point-and-Click Navigation**: Click any node to view its details
+- **One-Click Generation**: Generate AI content for null nodes with a button
+- **Real-time Updates**: Automatically refreshes tree structure after generation
+- **Interactive Interface**: Better UX than console with immediate feedback
+
+### Console Mode
+
+For batch processing or automated workflows:
+
+### Basic Console Usage
 
 ```bash
 python autofill_dialogue.py tree.json
 ```
 
-### Advanced Options
+### Advanced Console Options
 
 ```bash
 # Use a different model

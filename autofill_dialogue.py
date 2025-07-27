@@ -265,6 +265,8 @@ Examples:
   python autofill_dialogue.py tree.json --verbose
   python autofill_dialogue.py tree.json --max-nodes 10
   python autofill_dialogue.py --create-sample sample_tree.json
+  python autofill_dialogue.py --web-ui
+  python autofill_dialogue.py --web-ui --host 0.0.0.0 --port 8080
         """,
     )
 
@@ -295,6 +297,25 @@ Examples:
         help="Create a sample tree file and exit",
     )
 
+    parser.add_argument(
+        "--web-ui",
+        action="store_true",
+        help="Start the web UI server instead of console mode",
+    )
+
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host for web UI server (default: 127.0.0.1)",
+    )
+
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=5000,
+        help="Port for web UI server (default: 5000)",
+    )
+
     args = parser.parse_args()
 
     setup_logging(args.verbose)
@@ -304,6 +325,19 @@ Examples:
     # Handle sample creation
     if args.create_sample:
         create_sample_tree(tree_file)
+        return 0
+
+    # Handle web UI mode
+    if args.web_ui:
+        from src.web_ui import DialogueTreeWebApp
+        
+        logger.info("Starting Web UI mode")
+        logger.info(f"Tree file: {tree_file}")
+        logger.info(f"Model: {args.model}")
+        logger.info(f"Web server: http://{args.host}:{args.port}")
+        
+        web_app = DialogueTreeWebApp(tree_file, args.model)
+        web_app.run(host=args.host, port=args.port, debug=args.verbose)
         return 0
 
     logger.info("Starting Bootstrap Game Dialog Generator")
