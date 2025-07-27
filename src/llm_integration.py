@@ -66,9 +66,9 @@ class OllamaClient:
 
     def __init__(self, model: str = "llama3"):
         self.model = model
-        self._ollama = None
+        self._ollama: Optional[Any] = None
 
-    def _get_ollama(self):
+    def _get_ollama(self) -> Any:
         """Lazy load ollama to allow for easier testing."""
         if self._ollama is None:
             try:
@@ -96,14 +96,14 @@ class OllamaClient:
         """
         try:
             ollama = self._get_ollama()
-            response = ollama.chat(
+            response: Any = ollama.chat(
                 model=self.model, messages=[{"role": "user", "content": prompt}]
             )
 
             if "message" not in response or "content" not in response["message"]:
                 raise LLMError("Invalid response format from Ollama")
 
-            content = response["message"]["content"].strip()
+            content: str = response["message"]["content"].strip()
             logger.info(f"Generated content of length {len(content)}")
             return content
 
@@ -178,7 +178,7 @@ class NodeGenerator:
 
                 # Try to parse as JSON
                 try:
-                    node_data = json.loads(content)
+                    node_data: Dict[str, Any] = json.loads(content)
                 except json.JSONDecodeError:
                     # Try to extract JSON from the response if it's wrapped in other text
                     start_idx = content.find("{")
