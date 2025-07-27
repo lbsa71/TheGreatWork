@@ -9,8 +9,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
-
 from src.web_ui import DialogueWebUI
 
 
