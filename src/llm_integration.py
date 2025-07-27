@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""
+LLM integration for the Bootstrap Game Dialog Generator.
+
+This module handles communication with Ollama and prompt generation
+for dialogue tree completion.
+"""
+
+import json
+import logging
+from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
+
+
+class LLMError(Exception):
+    """Base exception for LLM operations."""
+
+    pass
+
+
+class PromptGenerator:
+    """Generates prompts for the LLM based on dialogue tree context."""
+
+    @staticmethod
+    def generate_node_prompt(
+        parent_situation: str, choice_text: str, params: Dict[str, Any]
+    ) -> str:
+        """
+        Generate a prompt for creating a new dialogue node.
+
+        Args:
+            parent_situation: The situation description of the parent node
+            choice_text: The text of the choice that leads to this node
+            params: Game parameters (loyalty, ambition, etc.)
+
+        Returns:
+            Formatted prompt string
+        """
+        prompt = f"""You are writing a branching dialogue tree for a visual novel.
+
+The parent node has this situation:
+"{parent_situation}"
+
+The player selected this choice:
+"{choice_text}"
+
+Parameters: {json.dumps(params)}
+
+Please generate a new dialogue node as a JSON object with:
+- 'situation': string
+- 'choices': a list of 2–3 options, each with:
+  - 'text': string
+  - 'next': null (placeholder)
+  - 'effects': dictionary of parameter changes (e.g., {{"loyalty": +10}})
+
+Respond with valid JSON only."""
+
+        return prompt
+
+
+class OllamaClient:
+    """Client for interacting with Ollama LLM."""
+
+    def __init__(self, model: str = "llama3"):
+        self.model = model
+        self._ollama = None
+
+    def _get_ollama(self):
+        """Lazy load ollama to allow for easier testing."""
+        if self._ollama is None:
+            try:
+                import ollama
+
+                self._ollama = ollama
+            except ImportError:
+                raise LLMError(
+                    "Ollama package not found. Please install with: pip install ollama"
+                )
+        return self._ollama
+
+    def generate_content(self, prompt: str) -> str:
+        """
+        Generate content using the LLM.
+
+        Args:
+            prompt: The prompt to send to the LLM
+
+        Returns:
+            Generated content as string
+
+        Raises:
+            LLMError: If generation fails
+        """
+        try:
+            ollama = self._get_ollama()
+            response = ollama.chat(
+                model=self.model, messages=[{"role": "user", "content": prompt}]
+            )
+
+            if "message" not in response or "content" not in response["message"]:
+                raise LLMError("Invalid response format from Ollama")
+
+            content = response["message"]["content"].strip()
+            logger.info(f"Generated content of length {len(content)}")
+            return content
+
+        except Exception as e:
+            logger.error(f"Error generating content with Ollama: {e}")
+            raise LLMError(f"Failed to generate content: {e}")
+
+    def is_available(self) -> bool:
+        """
+        Check if Ollama is available and the model is accessible.
+
+        Returns:
+            True if available, False otherwise
+        """
+        try:
+            ollama = self._get_ollama()
+            # Try a simple request to check if the model is available
+            ollama.chat(
+                model=self.model, messages=[{"role": "user", "content": "Hello"}]
+            )
+            return True
+        except Exception as e:
+            logger.warning(f"Ollama not available: {e}")
+            return False
+
+
+class NodeGenerator:
+    """Generates dialogue nodes using LLM integration."""
+
+    def __init__(
+        self,
+        llm_client: OllamaClient,
+        prompt_generator: Optional[PromptGenerator] = None,
+    ):
+        self.llm_client = llm_client
+        self.prompt_generator = prompt_generator or PromptGenerator()
+
+    def generate_node(
+        self,
+        parent_situation: str,
+        choice_text: str,
+        params: Dict[str, Any],
+        max_retries: int = 3,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Generate a new dialogue node.
+
+        Args:
+            parent_situation: The situation of the parent node
+            choice_text: The choice text that leads to this node
+            params: Game parameters
+            max_retries: Maximum number of retry attempts
+
+        Returns:
+            Generated node data or None if generation failed
+        """
+        prompt = self.prompt_generator.generate_node_prompt(
+            parent_situation, choice_text, params
+        )
+
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Generating node (attempt {attempt + 1}/{max_retries})")
+
+                content = self.llm_client.generate_content(prompt)
+
+                # Try to parse as JSON
+                try:
+                    node_data = json.loads(content)
+                except json.JSONDecodeError:
+                    # Try to extract JSON from the response if it's wrapped in other text
+                    start_idx = content.find("{")
+                    end_idx = content.rfind("}")
+                    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                        json_content = content[start_idx : end_idx + 1]
+                        node_data = json.loads(json_content)
+                    else:
+                        raise
+
+                logger.info("Successfully generated and parsed node data")
+                return node_data
+
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON on attempt {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    logger.error("All attempts to generate valid JSON failed")
+                    return None
+
+            except LLMError as e:
+                logger.error(f"LLM error on attempt {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    return None
+
+            except Exception as e:
+                logger.error(f"Unexpected error on attempt {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    return None
+
+        return None
