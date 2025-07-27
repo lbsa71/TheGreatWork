@@ -130,7 +130,7 @@ class DialogueDebugger:
 
         choice = choices[choice_num - 1]
         next_node_id = choice.get("next")
-        
+
         if next_node_id is None:
             print("❌ This choice leads to a NULL node (not yet generated)")
             return False
@@ -230,7 +230,7 @@ def run_debugger(tree: DialogueTree, start_node_id: Optional[str] = None) -> Non
     """
     print("Starting dialogue tree debugger...")
     print("Loading tree...")
-    
+
     try:
         debugger = DialogueDebugger(tree, start_node_id)
         debugger.run()
