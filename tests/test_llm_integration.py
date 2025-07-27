@@ -37,6 +37,49 @@ class TestPromptGenerator:
         assert "next" in prompt
         assert "effects" in prompt
 
+    def test_generate_node_prompt_with_history(self):
+        """Test prompt generation with dialogue history."""
+        parent_situation = "The advisor looks concerned."
+        choice_text = "Ask for guidance"
+        params = {"loyalty": 50, "wisdom": 60}
+        dialogue_history = """Dialogue History:
+1. Situation: The kingdom is in chaos.
+   Player chose: Seek the wise council
+2. Situation: You meet with the council.
+   Player chose: Express your concerns"""
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params, dialogue_history
+        )
+
+        # Check that both current context and history are included
+        assert "The advisor looks concerned." in prompt
+        assert "Ask for guidance" in prompt
+        assert '"loyalty": 50' in prompt
+        assert '"wisdom": 60' in prompt
+        assert "Dialogue History:" in prompt
+        assert "The kingdom is in chaos." in prompt
+        assert "Seek the wise council" in prompt
+        assert "Express your concerns" in prompt
+        assert "JSON object" in prompt
+
+    def test_generate_node_prompt_without_history(self):
+        """Test prompt generation without dialogue history (legacy behavior)."""
+        parent_situation = "The king is dead."
+        choice_text = "Mourn publicly"
+        params = {"loyalty": 45, "ambition": 80}
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params, None
+        )
+
+        # Should not contain history section
+        assert "Dialogue History:" not in prompt
+        # But should contain all other elements
+        assert "The king is dead." in prompt
+        assert "Mourn publicly" in prompt
+        assert "current parent node" in prompt
+
 
 class TestOllamaClient:
     """Tests for OllamaClient class."""
@@ -165,7 +208,7 @@ class TestNodeGenerator:
         # Verify
         assert result == node_data
         self.mock_prompt_gen.generate_node_prompt.assert_called_once_with(
-            "Parent situation", "Choice text", {"param": 1}
+            "Parent situation", "Choice text", {"param": 1}, None
         )
         self.mock_client.generate_content.assert_called_once_with("Test prompt")
 

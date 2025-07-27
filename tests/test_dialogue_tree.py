@@ -151,6 +151,71 @@ class TestDialogueTree:
         with pytest.raises(DialogueTreeError):
             DialogueTree.from_dict({"invalid": "data"})
 
+    def test_build_dialogue_history_simple_chain(self):
+        """Test building dialogue history for a simple chain."""
+        # Create a simple chain: start -> node1 -> node2
+        nodes = {
+            "start": {
+                "situation": "The kingdom is in chaos.",
+                "choices": [
+                    {"text": "Seek the wise council", "next": "node1"},
+                    {"text": "Take action immediately", "next": "other"},
+                ],
+            },
+            "node1": {
+                "situation": "You meet with the council.",
+                "choices": [
+                    {"text": "Ask for advice", "next": "node2"},
+                ],
+            },
+            "node2": None,
+            "other": None,
+        }
+        tree = DialogueTree(nodes, {"loyalty": 50})
+
+        # Test history for node2 (should include start -> node1 -> node2)
+        history = tree.build_dialogue_history("node2")
+
+        expected_lines = [
+            "Dialogue History:",
+            "1. Situation: The kingdom is in chaos.",
+            "   Player chose: Seek the wise council",
+            "2. Situation: You meet with the council.",
+            "   Player chose: Ask for advice",
+        ]
+        expected_history = "\n".join(expected_lines)
+
+        assert history == expected_history
+
+    def test_build_dialogue_history_no_parent(self):
+        """Test building dialogue history for root node or disconnected node."""
+        tree = DialogueTree(self.nodes, self.params)
+
+        # Test history for start node (root)
+        history = tree.build_dialogue_history("start")
+        assert history == "No previous dialogue history available."
+
+        # Test history for disconnected node
+        tree.nodes["orphan"] = None
+        history = tree.build_dialogue_history("orphan")
+        assert history == "No previous dialogue history available."
+
+    def test_build_dialogue_history_single_step(self):
+        """Test building dialogue history with one step."""
+        tree = DialogueTree(self.nodes, self.params)
+
+        # Test history for node1 (direct child of start)
+        history = tree.build_dialogue_history("node1")
+
+        expected_lines = [
+            "Dialogue History:",
+            "1. Situation: The king is dead.",
+            "   Player chose: Mourn publicly",
+        ]
+        expected_history = "\n".join(expected_lines)
+
+        assert history == expected_history
+
 
 class TestDialogueTreeManager:
     """Tests for DialogueTreeManager class."""
