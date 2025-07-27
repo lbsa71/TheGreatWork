@@ -151,7 +151,31 @@
         }
       ]
     },
-    "node_933": null,
+    "node_933": {
+      "situation": "As you continue to mourn publicly, some courtiers approach you with somber faces and sympathetic eyes. They express their condolences and offer words of comfort.",
+      "choices": [
+        {
+          "text": "Open up about your feelings",
+          "next": "node_655",
+          "effects": {
+            "charisma": 10
+          }
+        },
+        {
+          "text": "Keep your emotions in check",
+          "next": "node_741",
+          "effects": {}
+        },
+        {
+          "text": "Ask the courtiers if they've noticed anything unusual about the queen's behavior",
+          "next": "node_526",
+          "effects": {
+            "wisdom": 5,
+            "ambition": -5
+          }
+        }
+      ]
+    },
     "node_143": {
       "situation": "As you propose naming a regent, your advisors look at each other nervously, sensing that this may be a sign of weakness.",
       "choices": [
@@ -235,7 +259,32 @@
         }
       ]
     },
-    "node_726": null,
+    "node_726": {
+      "situation": "The royal physician looks taken aback by your demand, but they seem to sense that you're not going to back down.",
+      "choices": [
+        {
+          "text": "Tell me everything I need to know, no matter how difficult it may be",
+          "next": "node_205",
+          "effects": {
+            "wisdom": 15
+          }
+        },
+        {
+          "text": "I don't care about the details, just tell me what killed my father",
+          "next": "node_991",
+          "effects": {
+            "ambition": -5
+          }
+        },
+        {
+          "text": "Perhaps we should focus on finding a way to honor your memory instead of dwelling on the past?",
+          "next": "node_822",
+          "effects": {
+            "charisma": 10
+          }
+        }
+      ]
+    },
     "node_1010": {
       "situation": "The royal physician looks concerned and begins to explain that there were some subtle signs that might have indicated a pre-existing condition.",
       "choices": [
@@ -490,89 +539,9 @@
         }
       ]
     },
-    "node_526": {
-      "situation": "The courtiers exchange uneasy glances, and one of them leans in to whisper: 'Actually, your majesty, some of us have noticed that Queen Elara has been... distracted lately.'",
-      "choices": [
-        {
-          "text": "Press for more information about the queen's distraction",
-          "next": "node_112",
-          "effects": {
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "Tell the courtiers it's not their concern and move on",
-          "next": "node_1014",
-          "effects": {
-            "ambition": -10,
-            "charisma": -5
-          }
-        },
-        {
-          "text": "Order the courtiers to investigate further and report back to you",
-          "next": "node_528",
-          "effects": {
-            "loyalty": 15,
-            "ambition": 20
-          }
-        }
-      ]
-    },
-    "node_521": {
-      "situation": "Your advisors exchange skeptical glances, sensing that your decision may have been influenced by your youth and inexperience.",
-      "choices": [
-        {
-          "text": "I'm the ruler, I know what's best",
-          "next": "node_308",
-          "effects": {
-            "ambition": 20
-          }
-        },
-        {
-          "text": "Perhaps we should consider alternative options?",
-          "next": "node_975",
-          "effects": {
-            "wisdom": 15,
-            "charisma": 10
-          }
-        },
-        {
-          "text": "I'm just trying to ensure the kingdom's future",
-          "next": "node_402",
-          "effects": {
-            "loyalty": 25,
-            "wisdom": 5
-          }
-        }
-      ]
-    },
-    "node_447": {
-      "situation": "One of your advisors, a wise old man named Elwynn, speaks up to address your concerns.",
-      "choices": [
-        {
-          "text": "Perhaps we should establish clear guidelines for the regent's powers and limitations?",
-          "next": "node_726",
-          "effects": {
-            "wisdom": 15
-          }
-        },
-        {
-          "text": "I'm not sure that's enough. What if they try to manipulate us instead of following our rules?",
-          "next": "node_933",
-          "effects": {
-            "ambition": -10,
-            "loyalty": 5
-          }
-        },
-        {
-          "text": "Let's just focus on finding the right person for the job and trust their judgment.",
-          "next": "node_649",
-          "effects": {
-            "charisma": 8
-          }
-        }
-      ]
-    },
+    "node_526": null,
+    "node_521": null,
+    "node_447": null,
     "node_936": null,
     "node_418": null,
     "node_903": null,
@@ -611,13 +580,7 @@
     "node_917": null,
     "node_793": null,
     "node_979": null,
-    "node_902": null,
-    "node_112": null,
-    "node_1014": null,
-    "node_528": null,
-    "node_975": null,
-    "node_402": null,
-    "node_649": null
+    "node_902": null
   },
   "params": {
     "loyalty": 50,

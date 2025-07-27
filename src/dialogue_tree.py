@@ -139,10 +139,12 @@ class DialogueTreeManager:
         if tree_to_backup is None:
             raise DialogueTreeError("No tree to backup")
 
+        # Create backup directory if it doesn't exist
+        backup_dir = self.file_path.parent / "backup"
+        backup_dir.mkdir(exist_ok=True)
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_path = (
-            self.file_path.parent / f"{self.file_path.stem}_backup_{timestamp}.json"
-        )
+        backup_path = backup_dir / f"{self.file_path.stem}_backup_{timestamp}.json"
 
         try:
             with open(backup_path, "w", encoding="utf-8") as f:

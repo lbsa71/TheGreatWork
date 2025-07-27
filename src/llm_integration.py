@@ -52,7 +52,9 @@ Please generate a new dialogue node as a JSON object with:
 - 'choices': a list of 2–3 options, each with:
   - 'text': string
   - 'next': null (placeholder)
-  - 'effects': dictionary of parameter changes (e.g., {{"loyalty": +10}})
+  - 'effects': dictionary of parameter changes (e.g., {{"loyalty": 10}})
+
+IMPORTANT: Use only valid JSON syntax. Numbers should be written without + prefix (e.g., use 10 not +10).
 
 Respond with valid JSON only."""
 
@@ -161,12 +163,18 @@ class NodeGenerator:
         prompt = self.prompt_generator.generate_node_prompt(
             parent_situation, choice_text, params
         )
+        
+        # Debug: Log the prompt being sent
+        logger.info(f"Generated prompt:\n{prompt}")
 
         for attempt in range(max_retries):
             try:
                 logger.info(f"Generating node (attempt {attempt + 1}/{max_retries})")
 
                 content = self.llm_client.generate_content(prompt)
+                
+                # Debug: Log the raw content
+                logger.info(f"Raw generated content:\n{content}")
 
                 # Try to parse as JSON
                 try:
@@ -177,6 +185,7 @@ class NodeGenerator:
                     end_idx = content.rfind("}")
                     if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
                         json_content = content[start_idx : end_idx + 1]
+                        logger.info(f"Extracted JSON content:\n{json_content}")
                         node_data = json.loads(json_content)
                     else:
                         raise

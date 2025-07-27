@@ -13,6 +13,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -53,11 +54,12 @@ def setup_logging(verbose: bool = False) -> None:
 class DialogueAutofiller:
     """Main class for autofilling dialogue trees."""
 
-    def __init__(self, tree_file: Path, model: str = "llama3"):
+    def __init__(self, tree_file: Path, model: str = "llama3", max_nodes: Optional[int] = None):
         self.tree_manager = DialogueTreeManager(tree_file)
         self.llm_client = OllamaClient(model)
         self.node_generator = NodeGenerator(self.llm_client)
         self.nodes_generated = 0
+        self.max_nodes = max_nodes
 
     def check_prerequisites(self) -> bool:
         """Check if all prerequisites are met before starting."""
@@ -94,11 +96,16 @@ class DialogueAutofiller:
             backup_path = self.tree_manager.create_backup(tree)
             logger.info(f"Created initial backup: {backup_path}")
 
-            # Process nodes until no null nodes remain
+            # Process nodes until no null nodes remain or max_nodes limit reached
             while True:
                 null_node_id = tree.find_first_null_node()
                 if null_node_id is None:
                     logger.info("No more null nodes found - tree is complete!")
+                    break
+
+                # Check if we've reached the max_nodes limit
+                if self.max_nodes is not None and self.nodes_generated >= self.max_nodes:
+                    logger.info(f"Reached maximum node limit ({self.max_nodes}). Stopping generation.")
                     break
 
                 logger.info(f"Processing null node: {null_node_id}")
@@ -229,6 +236,7 @@ Examples:
   python autofill_dialogue.py tree.json
   python autofill_dialogue.py tree.json --model mistral
   python autofill_dialogue.py tree.json --verbose
+  python autofill_dialogue.py tree.json --max-nodes 10
   python autofill_dialogue.py --create-sample sample_tree.json
         """,
     )
@@ -246,6 +254,12 @@ Examples:
 
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
+    )
+
+    parser.add_argument(
+        "--max-nodes",
+        type=int,
+        help="Maximum number of nodes to generate (default: unlimited)",
     )
 
     parser.add_argument(
@@ -270,7 +284,7 @@ Examples:
     logger.info(f"Model: {args.model}")
 
     # Create autofiller
-    autofiller = DialogueAutofiller(tree_file, args.model)
+    autofiller = DialogueAutofiller(tree_file, args.model, args.max_nodes)
 
     # Check prerequisites
     if not autofiller.check_prerequisites():
