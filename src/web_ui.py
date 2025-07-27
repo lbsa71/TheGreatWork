@@ -42,7 +42,9 @@ class DialogueWebUI:
         self.node_generator = NodeGenerator(self.llm_client)
         
         # Flask app setup
-        self.app = Flask(__name__, template_folder='../templates', static_folder='../static')
+        self.app = Flask(__name__, 
+                        template_folder=str(Path(__file__).parent.parent / 'templates'), 
+                        static_folder=str(Path(__file__).parent.parent / 'static'))
         self._setup_routes()
     
     def _setup_routes(self):
