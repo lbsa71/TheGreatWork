@@ -2,53 +2,17 @@
 """
 Interactive dialogue tree debugger.
 
-This module provides an interactive GUI-like experience for navigating
+This module provides an interactive console experience for navigating
 and debugging dialogue trees.
 """
 
 import logging
 import sys
-from typing import Any, Dict, List, Optional
-
-# Import platform-specific modules for keyboard input
-try:
-    import msvcrt  # type: ignore # Windows
-
-    WINDOWS = True
-except ImportError:
-    import termios
-    import tty
-
-    WINDOWS = False
+from typing import Optional, Dict, Any, List
 
 from dialogue_tree import DialogueTree
 
 logger = logging.getLogger(__name__)
-
-
-class KeyboardInput:
-    """Cross-platform keyboard input handler."""
-
-    def __init__(self) -> None:
-        self.old_settings = None
-
-    def __enter__(self) -> "KeyboardInput":
-        if not WINDOWS:
-            # Unix/Linux/macOS
-            self.old_settings = termios.tcgetattr(sys.stdin)  # type: ignore
-            tty.setraw(sys.stdin.fileno())  # type: ignore
-        return self
-
-    def __exit__(self, type: Any, value: Any, traceback: Any) -> None:
-        if not WINDOWS and self.old_settings:
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)  # type: ignore
-
-    def get_char(self) -> str:
-        """Get a single character from stdin without requiring Enter."""
-        if WINDOWS:
-            return msvcrt.getch().decode("utf-8")  # type: ignore
-        else:
-            return sys.stdin.read(1)
 
 
 class DialogueDebugger:
@@ -92,26 +56,9 @@ class DialogueDebugger:
 
         return root_candidates[0] if root_candidates else None
 
-    def _clear_screen(self) -> None:
-        """Clear the terminal screen."""
-        # Only clear screen in interactive mode, not during tests
-        try:
-            if sys.stdout.isatty():
-                if WINDOWS:
-                    import os
-
-                    os.system("cls")
-                else:
-                    print("\033[2J\033[H", end="")
-        except:
-            # If we can't clear screen, just continue
-            pass
-
     def _display_node(self) -> None:
         """Display the current node information."""
-        self._clear_screen()
-
-        print("=" * 80)
+        print("\n" + "=" * 80)
         print("DIALOGUE TREE DEBUGGER")
         print("=" * 80)
         print()
@@ -137,33 +84,19 @@ class DialogueDebugger:
             print("❌ This node is NULL (not yet generated)")
             print()
         else:
-            situation = current_node.get("situation", "No situation text")
-            print(f"📖 {situation}")
+            print(f"📖 {current_node['situation']}")
+            print()
+            print("AVAILABLE CHOICES:")
+            print("-" * 40)
+            for i, choice in enumerate(current_node.get("choices", []), 1):
+                next_node = choice.get("next", "None")
+                effects = choice.get("effects", {})
+                effects_str = f" (Effects: {effects})" if effects else ""
+                print(f"{i}. {choice['text']}")
+                print(f"   → Next: {next_node}{effects_str}")
             print()
 
-            # Display choices
-            choices = current_node.get("choices", [])
-            if choices:
-                print("AVAILABLE CHOICES:")
-                print("-" * 40)
-                for i, choice in enumerate(choices, 1):
-                    choice_text = choice.get("text", "No text")
-                    next_node = choice.get("next", "None")
-                    effects = choice.get("effects", {})
-
-                    print(f"{i}. {choice_text}")
-                    print(f"   → Next: {next_node}")
-                    if effects:
-                        effects_str = ", ".join(
-                            [f"{k}:{v}" for k, v in effects.items()]
-                        )
-                        print(f"   ⚡ Effects: {effects_str}")
-                    print()
-            else:
-                print("❌ No choices available")
-                print()
-
-        # Display navigation help
+        # Display navigation options
         print("NAVIGATION:")
         print("-" * 40)
         print("1-9     : Choose option by number")
@@ -171,147 +104,137 @@ class DialogueDebugger:
         print("q       : Quit debugger")
         print("Enter   : Enter node ID directly")
         print()
-        print("Current game parameters:")
-        params_str = ", ".join([f"{k}:{v}" for k, v in self.tree.params.items()])
-        print(f"  {params_str}")
-        print()
-        print("Press a key to navigate...")
+
+        # Display current game parameters
+        if self.tree.params:
+            print("Current game parameters:")
+            for key, value in self.tree.params.items():
+                print(f"  {key}:{value}")
+            print()
 
     def _handle_choice_selection(self, choice_num: int) -> bool:
-        """Handle selection of a choice by number."""
+        """Handle choice selection by number."""
         if self.current_node_id is None:
-            print("❌ No current node!")
-            input("Press Enter to continue...")
+            print("❌ Cannot select choice: current node is NULL")
             return False
+
         current_node = self.tree.get_node(self.current_node_id)
         if current_node is None:
-            print("❌ Cannot navigate from null node!")
-            input("Press Enter to continue...")
+            print("❌ Cannot select choice: current node is NULL")
             return False
 
         choices = current_node.get("choices", [])
-        if 1 <= choice_num <= len(choices):
-            next_node_id = choices[choice_num - 1].get("next")
-            if next_node_id:
-                self.current_node_id = next_node_id
-                return True
-            else:
-                print("❌ Choice has no next node!")
-                input("Press Enter to continue...")
-                return False
-        else:
-            print(f"❌ Invalid choice! Choose 1-{len(choices)}")
-            input("Press Enter to continue...")
+        if choice_num < 1 or choice_num > len(choices):
+            print(f"❌ Invalid choice number: {choice_num}")
             return False
+
+        choice = choices[choice_num - 1]
+        next_node_id = choice.get("next")
+        
+        if next_node_id is None:
+            print("❌ This choice leads to a NULL node (not yet generated)")
+            return False
+
+        if next_node_id not in self.tree.nodes:
+            print(f"❌ Invalid next node: {next_node_id}")
+            return False
+
+        # Apply effects if any
+        effects = choice.get("effects", {})
+        if effects:
+            for param, change in effects.items():
+                if param in self.tree.params:
+                    self.tree.params[param] += change
+                    print(f"📊 {param} changed by {change}")
+
+        self.current_node_id = next_node_id
+        return True
 
     def _handle_go_up(self) -> bool:
         """Handle going up to parent node."""
         if self.current_node_id is None:
-            print("❌ No current node!")
-            input("Press Enter to continue...")
+            print("❌ Cannot go up: current node is NULL")
             return False
-        parent_info = self.tree.find_parent_and_choice(self.current_node_id)
-        if parent_info:
-            parent_id, _ = parent_info
-            self.current_node_id = parent_id
-            return True
-        else:
-            print("❌ No parent node found!")
-            input("Press Enter to continue...")
+
+        result = self.tree.find_parent_and_choice(self.current_node_id)
+        if result is None:
+            print("❌ No parent node found")
             return False
+
+        parent_id, choice = result
+        self.current_node_id = parent_id
+        print(f"⬆️  Moved up to parent node: {parent_id}")
+        return True
 
     def _handle_direct_navigation(self) -> bool:
-        """Handle direct navigation to a node by ID."""
-        print("\nEnter node ID (or press Enter to cancel): ", end="", flush=True)
-
-        # Restore normal input mode temporarily for non-Windows systems
-        if not WINDOWS:
-            try:
-                # Get current settings
-                old_settings = termios.tcgetattr(sys.stdin)  # type: ignore
-                # Restore normal mode temporarily
-                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)  # type: ignore
-            except:
-                # If we can't restore settings, continue anyway
-                pass
-
+        """Handle direct navigation to a specific node."""
         try:
-            node_id = input().strip()
+            node_id = input("Enter node ID (or press Enter to cancel): ").strip()
             if not node_id:
                 return False
 
-            if node_id in self.tree.nodes:
-                self.current_node_id = node_id
-                return True
-            else:
-                print(f"❌ Node '{node_id}' not found!")
+            if node_id not in self.tree.nodes:
+                print(f"❌ Node '{node_id}' not found")
                 input("Press Enter to continue...")
                 return False
-        except (KeyboardInterrupt, EOFError):
+
+            self.current_node_id = node_id
+            print(f"🎯 Navigated to node: {node_id}")
+            return True
+        except (EOFError, KeyboardInterrupt):
             return False
-        finally:
-            # Re-enable raw mode for continued operation
-            if not WINDOWS:
-                try:
-                    tty.setraw(sys.stdin.fileno())  # type: ignore
-                except:
-                    pass
 
     def run(self) -> None:
         """Run the interactive debugger."""
-        print("Starting dialogue tree debugger...")
-        print("Loading tree...")
-
         try:
-            with KeyboardInput() as kb:
-                while self.running:
-                    self._display_node()
+            while self.running:
+                self._display_node()
 
-                    try:
-                        char = kb.get_char()
+                try:
+                    user_input = input("Enter command: ").strip().lower()
+                except (EOFError, KeyboardInterrupt):
+                    print("\n👋 Goodbye!")
+                    break
 
-                        # Handle different input types
-                        if char.lower() == "q":
-                            self.running = False
-                            break
-                        elif char.lower() == "u":
-                            self._handle_go_up()
-                        elif char == "\r" or char == "\n":  # Enter key
-                            self._handle_direct_navigation()
-                        elif char.isdigit():
-                            choice_num = int(char)
-                            self._handle_choice_selection(choice_num)
-                        elif char == "\x03":  # Ctrl+C
-                            raise KeyboardInterrupt
-                        # Ignore other characters
+                if not user_input:
+                    continue
 
-                    except KeyboardInterrupt:
-                        print("\n\nExiting debugger...")
-                        break
-                    except Exception as e:
-                        logger.error(f"Error in debugger: {e}")
-                        print(f"❌ Error: {e}")
-                        input("Press Enter to continue...")
+                if user_input == "q":
+                    print("👋 Goodbye!")
+                    break
+                elif user_input == "u":
+                    self._handle_go_up()
+                elif user_input.isdigit():
+                    choice_num = int(user_input)
+                    self._handle_choice_selection(choice_num)
+                else:
+                    # Try to navigate directly to the node
+                    if user_input in self.tree.nodes:
+                        self.current_node_id = user_input
+                        print(f"🎯 Navigated to node: {user_input}")
+                    else:
+                        print(f"❌ Unknown command: {user_input}")
 
         except Exception as e:
+            logger.error(f"Error in debugger: {e}")
             print(f"❌ Fatal error in debugger: {e}")
-            logger.error(f"Fatal debugger error: {e}")
-
-        finally:
-            print("\nDebugger session ended.")
 
 
 def run_debugger(tree: DialogueTree, start_node_id: Optional[str] = None) -> None:
     """
-    Run the interactive dialogue debugger.
+    Run the dialogue tree debugger.
 
     Args:
         tree: The dialogue tree to debug
         start_node_id: Node ID to start from, or None for root node
     """
+    print("Starting dialogue tree debugger...")
+    print("Loading tree...")
+    
     try:
         debugger = DialogueDebugger(tree, start_node_id)
         debugger.run()
     except Exception as e:
-        print(f"❌ Failed to start debugger: {e}")
-        logger.error(f"Failed to start debugger: {e}")
+        logger.error(f"Fatal debugger error: {e}")
+        print(f"❌ Fatal error: {e}")
+        print("Debugger session ended.")
