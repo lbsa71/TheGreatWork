@@ -161,13 +161,33 @@ class DialogueWebUI:
             if self.tree.nodes[node_id] is not None:
                 return jsonify({'error': 'Node already has content'}), 400
             
+            # Check if Ollama is available before attempting generation
+            if not self.llm_client.is_available():
+                return jsonify({
+                    'error': 'AI generation is not available. Please ensure Ollama is installed and running with the required model.',
+                    'details': f'Required model: {self.llm_client.model}',
+                    'instructions': 'Install Ollama and run: ollama pull ' + self.llm_client.model
+                }), 503
+            
             try:
                 # Find parent context
                 parent_context = self._find_parent_context(node_id)
                 
-                # Generate new node content
+                if not parent_context:
+                    return jsonify({'error': 'Could not find parent context for node'}), 400
+                
+                # Get tree parameters for generation
+                tree_params = getattr(self.tree, 'params', {})
+                tree_rules = getattr(self.tree, 'rules', {})
+                tree_scene = getattr(self.tree, 'scene', {})
+                
+                # Generate new node content with correct parameters
                 generated_content = self.node_generator.generate_node(
-                    self.tree, node_id, parent_context
+                    parent_situation=parent_context['parent_situation'],
+                    choice_text=parent_context['choice_text'],
+                    params=tree_params,
+                    rules=tree_rules,
+                    scene=tree_scene
                 )
                 
                 if generated_content:

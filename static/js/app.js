@@ -387,7 +387,17 @@ class DialogueTreeApp {
             
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'Generation failed');
+                let errorMessage = error.error || 'Generation failed';
+                
+                // Add additional details if available
+                if (error.details) {
+                    errorMessage += `\n\nDetails: ${error.details}`;
+                }
+                if (error.instructions) {
+                    errorMessage += `\n\nTo fix this: ${error.instructions}`;
+                }
+                
+                throw new Error(errorMessage);
             }
             
             const result = await response.json();
@@ -452,21 +462,30 @@ class DialogueTreeApp {
         // Create a toast-like notification
         const toast = document.createElement('div');
         toast.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
-        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 250px;';
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 250px; max-width: 400px; white-space: pre-line;';
+        
+        // Escape HTML but preserve line breaks
+        const escapedMessage = message
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
         
         toast.innerHTML = `
-            ${message}
+            ${escapedMessage}
             <button type="button" class="btn-close" onclick="this.parentElement.remove()">×</button>
         `;
         
         document.body.appendChild(toast);
         
-        // Auto-remove after 5 seconds
+        // Auto-remove after 8 seconds for longer messages
+        const timeout = type === 'error' ? 8000 : 5000;
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.parentNode.removeChild(toast);
             }
-        }, 5000);
+        }, timeout);
     }
 }
 
