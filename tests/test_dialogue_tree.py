@@ -7,7 +7,7 @@ import json
 import sys
 import tempfile
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 from unittest.mock import mock_open, patch
 
 import pytest

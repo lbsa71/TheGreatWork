@@ -3,17 +3,18 @@
 Tests for the dialogue tree debugger.
 """
 
-import pytest
-from typing import Any
-from unittest.mock import patch, MagicMock
 import sys
 from pathlib import Path
+from typing import Any
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from src.dialogue_tree import DialogueTree
 from src.debugger import DialogueDebugger, KeyboardInput, run_debugger
+from src.dialogue_tree import DialogueTree
 
 
 class TestKeyboardInput:

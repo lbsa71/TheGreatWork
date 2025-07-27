@@ -8,7 +8,7 @@ and debugging dialogue trees.
 
 import logging
 import sys
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 # Import platform-specific modules for keyboard input
 try:
@@ -16,8 +16,8 @@ try:
 
     WINDOWS = True
 except ImportError:
-    import tty
     import termios
+    import tty
 
     WINDOWS = False
 
