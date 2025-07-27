@@ -28,6 +28,8 @@ class PromptGenerator:
         choice_text: str,
         params: Dict[str, Any],
         dialogue_history: Optional[str] = None,
+        rules: Optional[Dict[str, Any]] = None,
+        scene: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate a prompt for creating a new dialogue node.
@@ -37,11 +39,25 @@ class PromptGenerator:
             choice_text: The text of the choice that leads to this node
             params: Game parameters (loyalty, ambition, etc.)
             dialogue_history: Optional historical context from previous nodes
+            rules: Optional stylistic rules (language, tone, voice)
+            scene: Optional world-building information
 
         Returns:
             Formatted prompt string
         """
         prompt_parts = ["You are writing a branching dialogue tree for a visual novel."]
+
+        # Include rules if available
+        if rules:
+            prompt_parts.extend(["", "STYLISTIC RULES:"])
+            for key, value in rules.items():
+                prompt_parts.append(f"- {key.title()}: {value}")
+
+        # Include scene information if available
+        if scene:
+            prompt_parts.extend(["", "WORLD-BUILDING CONTEXT:"])
+            for key, value in scene.items():
+                prompt_parts.append(f"- {key.title()}: {value}")
 
         # Include dialogue history if available
         if dialogue_history:
@@ -49,6 +65,7 @@ class PromptGenerator:
 
         prompt_parts.extend(
             [
+                "",
                 f"The current parent node has this situation:",
                 f'"{parent_situation}"',
                 "",
@@ -159,6 +176,8 @@ class NodeGenerator:
         choice_text: str,
         params: Dict[str, Any],
         dialogue_history: Optional[str] = None,
+        rules: Optional[Dict[str, Any]] = None,
+        scene: Optional[Dict[str, Any]] = None,
         max_retries: int = 3,
     ) -> Optional[Dict[str, Any]]:
         """
@@ -169,13 +188,15 @@ class NodeGenerator:
             choice_text: The choice text that leads to this node
             params: Game parameters
             dialogue_history: Optional historical context from previous nodes
+            rules: Optional stylistic rules (language, tone, voice)
+            scene: Optional world-building information
             max_retries: Maximum number of retry attempts
 
         Returns:
             Generated node data or None if generation failed
         """
         prompt = self.prompt_generator.generate_node_prompt(
-            parent_situation, choice_text, params, dialogue_history
+            parent_situation, choice_text, params, dialogue_history, rules, scene
         )
 
         # Debug: Log the prompt being sent
