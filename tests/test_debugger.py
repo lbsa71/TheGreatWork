@@ -233,7 +233,12 @@ class TestDialogueDebugger:
     @patch("debugger.tty", create=True)
     @patch("builtins.input", return_value="right")
     def test_handle_direct_navigation_success(
-        self, mock_input: Any, mock_tty: Any, mock_termios: Any, mock_windows: Any, sample_tree: Any
+        self,
+        mock_input: Any,
+        mock_tty: Any,
+        mock_termios: Any,
+        mock_windows: Any,
+        sample_tree: Any,
     ) -> None:
         """Test successful direct navigation."""
         debugger = DialogueDebugger(sample_tree, "start")
@@ -247,7 +252,12 @@ class TestDialogueDebugger:
     @patch("debugger.tty", create=True)
     @patch("builtins.input", return_value="nonexistent")
     def test_handle_direct_navigation_invalid_node(
-        self, mock_input: Any, mock_tty: Any, mock_termios: Any, mock_windows: Any, sample_tree: Any
+        self,
+        mock_input: Any,
+        mock_tty: Any,
+        mock_termios: Any,
+        mock_windows: Any,
+        sample_tree: Any,
     ) -> None:
         """Test direct navigation to invalid node."""
         debugger = DialogueDebugger(sample_tree, "start")
@@ -263,7 +273,12 @@ class TestDialogueDebugger:
     @patch("debugger.tty", create=True)
     @patch("builtins.input", return_value="")
     def test_handle_direct_navigation_cancel(
-        self, mock_input: Any, mock_tty: Any, mock_termios: Any, mock_windows: Any, sample_tree: Any
+        self,
+        mock_input: Any,
+        mock_tty: Any,
+        mock_termios: Any,
+        mock_windows: Any,
+        sample_tree: Any,
     ) -> None:
         """Test canceling direct navigation."""
         debugger = DialogueDebugger(sample_tree, "start")
@@ -292,7 +307,9 @@ class TestRunDebugger:
         return DialogueTree.from_dict(tree_data)
 
     @patch("debugger.DialogueDebugger")
-    def test_run_debugger_success(self, mock_debugger_class: Any, sample_tree: Any) -> None:
+    def test_run_debugger_success(
+        self, mock_debugger_class: Any, sample_tree: Any
+    ) -> None:
         """Test successful debugger run."""
         mock_debugger = MagicMock()
         mock_debugger_class.return_value = mock_debugger
@@ -304,7 +321,9 @@ class TestRunDebugger:
 
     @patch("debugger.DialogueDebugger")
     @patch("builtins.print")
-    def test_run_debugger_exception(self, mock_print: Any, mock_debugger_class: Any, sample_tree: Any) -> None:
+    def test_run_debugger_exception(
+        self, mock_print: Any, mock_debugger_class: Any, sample_tree: Any
+    ) -> None:
         """Test debugger run with exception."""
         mock_debugger_class.side_effect = Exception("Test error")
 

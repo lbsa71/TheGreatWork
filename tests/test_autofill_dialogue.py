@@ -345,7 +345,9 @@ class TestMain:
 
     @patch("autofill_dialogue.DialogueTreeManager")
     @patch("autofill_dialogue.run_debugger")
-    def test_main_debug_mode(self, mock_run_debugger: Any, mock_manager_class: Any) -> None:
+    def test_main_debug_mode(
+        self, mock_run_debugger: Any, mock_manager_class: Any
+    ) -> None:
         """Test main function with debug mode."""
         mock_manager = MagicMock()
         mock_tree = MagicMock()

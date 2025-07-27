@@ -400,7 +400,10 @@ class TestValidateGeneratedNode:
 
     def test_invalid_too_few_choices(self) -> None:
         """Test validation when there are too few choices."""
-        node: Dict[str, Any] = {"situation": "Test", "choices": [{"text": "Only one", "next": None}]}
+        node: Dict[str, Any] = {
+            "situation": "Test",
+            "choices": [{"text": "Only one", "next": None}],
+        }
         assert validate_generated_node(node) is False
 
     def test_invalid_too_many_choices(self) -> None:
