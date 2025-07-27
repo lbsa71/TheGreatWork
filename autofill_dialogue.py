@@ -285,7 +285,7 @@ Examples:
 
     parser.add_argument(
         "--debug",
-        action="store_true", 
+        action="store_true",
         help="Launch interactive dialogue tree debugger",
     )
 
@@ -310,11 +310,11 @@ Examples:
     if args.debug:
         logger.info("Starting interactive dialogue tree debugger")
         logger.info(f"Tree file: {tree_file}")
-        
+
         if not tree_file.exists():
             logger.error(f"Dialogue tree file not found: {tree_file}")
             return 1
-        
+
         try:
             tree_manager = DialogueTreeManager(tree_file)
             tree = tree_manager.load_tree()
