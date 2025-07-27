@@ -7,6 +7,7 @@ import json
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
@@ -20,7 +21,7 @@ from autofill_dialogue import DialogueAutofiller, create_sample_tree, main
 class TestDialogueAutofiller:
     """Tests for DialogueAutofiller class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test objects."""
         self.tree_file = Path("test_tree.json")
 
@@ -39,14 +40,14 @@ class TestDialogueAutofiller:
 
             self.autofiller = DialogueAutofiller(self.tree_file, "test_model")
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test initialization."""
         assert self.autofiller.tree_manager == self.mock_tree_manager
         assert self.autofiller.llm_client == self.mock_llm_client
         assert self.autofiller.node_generator == self.mock_node_generator
         assert self.autofiller.nodes_generated == 0
 
-    def test_check_prerequisites_success(self):
+    def test_check_prerequisites_success(self) -> None:
         """Test successful prerequisite check."""
         self.mock_tree_manager.file_path.exists.return_value = True
         self.mock_llm_client.is_available.return_value = True
@@ -54,14 +55,14 @@ class TestDialogueAutofiller:
         result = self.autofiller.check_prerequisites()
         assert result is True
 
-    def test_check_prerequisites_file_not_found(self):
+    def test_check_prerequisites_file_not_found(self) -> None:
         """Test prerequisite check when file doesn't exist."""
         self.mock_tree_manager.file_path.exists.return_value = False
 
         result = self.autofiller.check_prerequisites()
         assert result is False
 
-    def test_check_prerequisites_llm_not_available(self):
+    def test_check_prerequisites_llm_not_available(self) -> None:
         """Test prerequisite check when LLM is not available."""
         self.mock_tree_manager.file_path.exists.return_value = True
         self.mock_llm_client.is_available.return_value = False
@@ -69,7 +70,7 @@ class TestDialogueAutofiller:
         result = self.autofiller.check_prerequisites()
         assert result is False
 
-    def test_process_tree_success(self):
+    def test_process_tree_success(self) -> None:
         """Test successful tree processing."""
         # Mock tree with one null node
         mock_tree = Mock()
@@ -106,7 +107,7 @@ class TestDialogueAutofiller:
         self.mock_tree_manager.load_tree.assert_called_once()
         self.mock_tree_manager.save_tree.assert_called()
 
-    def test_process_tree_no_null_nodes(self):
+    def test_process_tree_no_null_nodes(self) -> None:
         """Test tree processing when no null nodes exist."""
         mock_tree = Mock()
         mock_tree.find_first_null_node.return_value = None
@@ -122,7 +123,7 @@ class TestDialogueAutofiller:
         assert result is True
         assert self.autofiller.nodes_generated == 0
 
-    def test_process_tree_node_generation_failure(self):
+    def test_process_tree_node_generation_failure(self) -> None:
         """Test tree processing when node generation fails."""
         mock_tree = Mock()
         mock_tree.find_first_null_node.return_value = "node1"
@@ -141,7 +142,7 @@ class TestDialogueAutofiller:
 
         assert result is False
 
-    def test_process_node_success(self):
+    def test_process_node_success(self) -> None:
         """Test successful node processing."""
         mock_tree = Mock()
         mock_tree.find_parent_and_choice.return_value = (
@@ -167,7 +168,7 @@ class TestDialogueAutofiller:
         assert result is True
         mock_tree.update_node.assert_called_once_with("node1", generated_node)
 
-    def test_process_node_no_parent(self):
+    def test_process_node_no_parent(self) -> None:
         """Test node processing when parent is not found."""
         mock_tree = Mock()
         mock_tree.find_parent_and_choice.return_value = None
@@ -176,7 +177,7 @@ class TestDialogueAutofiller:
 
         assert result is False
 
-    def test_process_node_invalid_generated_node(self):
+    def test_process_node_invalid_generated_node(self) -> None:
         """Test node processing when generated node is invalid."""
         mock_tree = Mock()
         mock_tree.find_parent_and_choice.return_value = (
@@ -198,7 +199,7 @@ class TestDialogueAutofiller:
 class TestCreateSampleTree:
     """Tests for create_sample_tree function."""
 
-    def test_create_sample_tree(self):
+    def test_create_sample_tree(self) -> None:
         """Test sample tree creation."""
         mock_file = mock_open()
 
@@ -222,7 +223,7 @@ class TestCreateSampleTree:
 class TestMain:
     """Tests for main function."""
 
-    def test_main_create_sample(self):
+    def test_main_create_sample(self) -> None:
         """Test main function with --create-sample flag."""
         test_args = ["autofill_dialogue.py", "--create-sample", "sample.json"]
 
@@ -235,7 +236,7 @@ class TestMain:
             assert result == 0
             mock_create.assert_called_once_with(Path("sample.json"))
 
-    def test_main_success(self):
+    def test_main_success(self) -> None:
         """Test successful main execution."""
         test_args = ["autofill_dialogue.py", "tree.json"]
 
@@ -253,7 +254,7 @@ class TestMain:
             mock_autofiller.check_prerequisites.assert_called_once()
             mock_autofiller.process_tree.assert_called_once()
 
-    def test_main_prerequisites_failed(self):
+    def test_main_prerequisites_failed(self) -> None:
         """Test main execution when prerequisites fail."""
         test_args = ["autofill_dialogue.py", "tree.json"]
 
@@ -270,7 +271,7 @@ class TestMain:
             mock_autofiller.check_prerequisites.assert_called_once()
             mock_autofiller.process_tree.assert_not_called()
 
-    def test_main_processing_failed(self):
+    def test_main_processing_failed(self) -> None:
         """Test main execution when processing fails."""
         test_args = ["autofill_dialogue.py", "tree.json"]
 
@@ -288,7 +289,7 @@ class TestMain:
             mock_autofiller.check_prerequisites.assert_called_once()
             mock_autofiller.process_tree.assert_called_once()
 
-    def test_main_default_arguments(self):
+    def test_main_default_arguments(self) -> None:
         """Test main function with default arguments."""
         test_args = ["autofill_dialogue.py"]
 
@@ -307,7 +308,7 @@ class TestMain:
             # Check that default arguments were used
             mock_class.assert_called_once_with(Path("tree.json"), "llama3", None)
 
-    def test_main_verbose_flag(self):
+    def test_main_verbose_flag(self) -> None:
         """Test main function with verbose flag."""
         test_args = ["autofill_dialogue.py", "--verbose", "tree.json"]
 
@@ -324,7 +325,7 @@ class TestMain:
             assert result == 0
             mock_setup.assert_called_once_with(True)
 
-    def test_main_custom_model(self):
+    def test_main_custom_model(self) -> None:
         """Test main function with custom model."""
         test_args = ["autofill_dialogue.py", "--model", "mistral", "tree.json"]
 
@@ -341,3 +342,53 @@ class TestMain:
 
             assert result == 0
             mock_class.assert_called_once_with(Path("tree.json"), "mistral", None)
+
+    @patch("autofill_dialogue.DialogueTreeManager")
+    @patch("autofill_dialogue.run_debugger")
+    def test_main_debug_mode(
+        self, mock_run_debugger: Any, mock_manager_class: Any
+    ) -> None:
+        """Test main function with debug mode."""
+        mock_manager = MagicMock()
+        mock_tree = MagicMock()
+        mock_manager.load_tree.return_value = mock_tree
+        mock_manager_class.return_value = mock_manager
+
+        test_args = ["autofill_dialogue.py", "tree.json", "--debug"]
+
+        # Mock file exists
+        with patch("sys.argv", test_args), patch(
+            "pathlib.Path.exists", return_value=True
+        ):
+            result = main()
+
+        assert result == 0
+        mock_run_debugger.assert_called_once_with(mock_tree, None)
+
+    @patch("autofill_dialogue.DialogueTreeManager")
+    @patch("autofill_dialogue.run_debugger")
+    def test_main_debug_mode_with_start_node(
+        self, mock_run_debugger: Any, mock_manager_class: Any
+    ) -> None:
+        """Test main function with debug mode and start node."""
+        mock_manager = MagicMock()
+        mock_tree = MagicMock()
+        mock_manager.load_tree.return_value = mock_tree
+        mock_manager_class.return_value = mock_manager
+
+        test_args = [
+            "autofill_dialogue.py",
+            "tree.json",
+            "--debug",
+            "--start-node",
+            "node1",
+        ]
+
+        # Mock file exists
+        with patch("sys.argv", test_args), patch(
+            "pathlib.Path.exists", return_value=True
+        ):
+            result = main()
+
+        assert result == 0
+        mock_run_debugger.assert_called_once_with(mock_tree, "node1")

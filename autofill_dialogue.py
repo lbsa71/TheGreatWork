@@ -18,13 +18,14 @@ from typing import Optional
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from dialogue_tree import (
+from src.debugger import run_debugger
+from src.dialogue_tree import (
     DialogueTree,
     DialogueTreeError,
     DialogueTreeManager,
     validate_generated_node,
 )
-from llm_integration import NodeGenerator, OllamaClient
+from src.llm_integration import NodeGenerator, OllamaClient
 
 # Configure logging
 logging.basicConfig(
@@ -265,6 +266,8 @@ Examples:
   python autofill_dialogue.py tree.json --verbose
   python autofill_dialogue.py tree.json --max-nodes 10
   python autofill_dialogue.py --create-sample sample_tree.json
+  python autofill_dialogue.py tree.json --debug
+  python autofill_dialogue.py tree.json --debug --start-node node1
         """,
     )
 
@@ -295,6 +298,18 @@ Examples:
         help="Create a sample tree file and exit",
     )
 
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Launch interactive dialogue tree debugger",
+    )
+
+    parser.add_argument(
+        "--start-node",
+        type=str,
+        help="Starting node ID for debugger (default: auto-detect root)",
+    )
+
     args = parser.parse_args()
 
     setup_logging(args.verbose)
@@ -305,6 +320,27 @@ Examples:
     if args.create_sample:
         create_sample_tree(tree_file)
         return 0
+
+    # Handle debugger mode
+    if args.debug:
+        logger.info("Starting interactive dialogue tree debugger")
+        logger.info(f"Tree file: {tree_file}")
+
+        if not tree_file.exists():
+            logger.error(f"Dialogue tree file not found: {tree_file}")
+            return 1
+
+        try:
+            tree_manager = DialogueTreeManager(tree_file)
+            tree = tree_manager.load_tree()
+            run_debugger(tree, args.start_node)
+            return 0
+        except DialogueTreeError as e:
+            logger.error(f"Failed to load tree: {e}")
+            return 1
+        except Exception as e:
+            logger.error(f"Debugger error: {e}")
+            return 1
 
     logger.info("Starting Bootstrap Game Dialog Generator")
     logger.info(f"Tree file: {tree_file}")

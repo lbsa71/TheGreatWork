@@ -7,13 +7,14 @@ import json
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any, Dict
 from unittest.mock import mock_open, patch
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dialogue_tree import (
+from src.dialogue_tree import (
     DialogueNode,
     DialogueTree,
     DialogueTreeError,
@@ -25,27 +26,27 @@ from dialogue_tree import (
 class TestDialogueNode:
     """Tests for DialogueNode class."""
 
-    def test_init_basic(self):
+    def test_init_basic(self) -> None:
         """Test basic initialization."""
         node = DialogueNode("Test situation")
         assert node.situation == "Test situation"
         assert node.choices == []
 
-    def test_init_with_choices(self):
+    def test_init_with_choices(self) -> None:
         """Test initialization with choices."""
         choices = [{"text": "Choice 1", "next": "node1"}]
         node = DialogueNode("Test situation", choices)
         assert node.situation == "Test situation"
         assert node.choices == choices
 
-    def test_to_dict(self):
+    def test_to_dict(self) -> None:
         """Test conversion to dictionary."""
         choices = [{"text": "Choice 1", "next": "node1"}]
         node = DialogueNode("Test situation", choices)
         expected = {"situation": "Test situation", "choices": choices}
         assert node.to_dict() == expected
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         """Test creation from dictionary."""
         data = {
             "situation": "Test situation",
@@ -55,7 +56,7 @@ class TestDialogueNode:
         assert node.situation == "Test situation"
         assert node.choices == data["choices"]
 
-    def test_from_dict_no_choices(self):
+    def test_from_dict_no_choices(self) -> None:
         """Test creation from dictionary without choices."""
         data = {"situation": "Test situation"}
         node = DialogueNode.from_dict(data)
@@ -66,7 +67,7 @@ class TestDialogueNode:
 class TestDialogueTree:
     """Tests for DialogueTree class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test data."""
         self.nodes = {
             "start": {
@@ -83,10 +84,10 @@ class TestDialogueTree:
                 "choices": [{"text": "Exit", "next": "end"}],
             },
         }
-        self.params = {"loyalty": 45, "ambition": 80}
+        self.params = {"loyalty": 45.0, "ambition": 80.0}
         self.tree = DialogueTree(self.nodes, self.params)
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test initialization."""
         assert self.tree.nodes == self.nodes
         assert self.tree.params == self.params
@@ -104,19 +105,19 @@ class TestDialogueTree:
         assert tree.rules == rules
         assert tree.scene == scene
 
-    def test_find_first_null_node(self):
+    def test_find_first_null_node(self) -> None:
         """Test finding the first null node."""
         result = self.tree.find_first_null_node()
         assert result == "node1"  # Should find the first null node
 
-    def test_find_first_null_node_none(self):
+    def test_find_first_null_node_none(self) -> None:
         """Test when no null nodes exist."""
         # Remove null nodes
         self.tree.nodes = {"start": self.nodes["start"], "node3": self.nodes["node3"]}
         result = self.tree.find_first_null_node()
         assert result is None
 
-    def test_find_parent_and_choice(self):
+    def test_find_parent_and_choice(self) -> None:
         """Test finding parent node and choice."""
         result = self.tree.find_parent_and_choice("node1")
         assert result is not None
@@ -125,28 +126,28 @@ class TestDialogueTree:
         assert choice["text"] == "Mourn publicly"
         assert choice["next"] == "node1"
 
-    def test_find_parent_and_choice_not_found(self):
+    def test_find_parent_and_choice_not_found(self) -> None:
         """Test when parent is not found."""
         result = self.tree.find_parent_and_choice("nonexistent")
         assert result is None
 
-    def test_update_node(self):
+    def test_update_node(self) -> None:
         """Test updating a node."""
         new_data = {"situation": "New situation", "choices": []}
         self.tree.update_node("node1", new_data)
         assert self.tree.nodes["node1"] == new_data
 
-    def test_get_node(self):
+    def test_get_node(self) -> None:
         """Test getting a node."""
         result = self.tree.get_node("start")
         assert result == self.nodes["start"]
 
-    def test_get_node_not_found(self):
+    def test_get_node_not_found(self) -> None:
         """Test getting a non-existent node."""
         result = self.tree.get_node("nonexistent")
         assert result is None
 
-    def test_to_dict(self):
+    def test_to_dict(self) -> None:
         """Test conversion to dictionary."""
         result = self.tree.to_dict()
         expected = {"nodes": self.nodes, "params": self.params}
@@ -166,7 +167,7 @@ class TestDialogueTree:
         }
         assert result == expected
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         """Test creation from dictionary."""
         data = {"nodes": self.nodes, "params": self.params}
         tree = DialogueTree.from_dict(data)
@@ -191,12 +192,12 @@ class TestDialogueTree:
         assert tree.rules == rules
         assert tree.scene == scene
 
-    def test_from_dict_invalid(self):
+    def test_from_dict_invalid(self) -> None:
         """Test creation from invalid dictionary."""
         with pytest.raises(DialogueTreeError):
             DialogueTree.from_dict({"invalid": "data"})
 
-    def test_build_dialogue_history_simple_chain(self):
+    def test_build_dialogue_history_simple_chain(self) -> None:
         """Test building dialogue history for a simple chain."""
         # Create a simple chain: start -> node1 -> node2
         nodes = {
@@ -216,7 +217,7 @@ class TestDialogueTree:
             "node2": None,
             "other": None,
         }
-        tree = DialogueTree(nodes, {"loyalty": 50})
+        tree = DialogueTree(nodes, {"loyalty": 50.0})
 
         # Test history for node2 (should include start -> node1 -> node2)
         history = tree.build_dialogue_history("node2")
@@ -232,7 +233,7 @@ class TestDialogueTree:
 
         assert history == expected_history
 
-    def test_build_dialogue_history_no_parent(self):
+    def test_build_dialogue_history_no_parent(self) -> None:
         """Test building dialogue history for root node or disconnected node."""
         tree = DialogueTree(self.nodes, self.params)
 
@@ -245,7 +246,7 @@ class TestDialogueTree:
         history = tree.build_dialogue_history("orphan")
         assert history == "No previous dialogue history available."
 
-    def test_build_dialogue_history_single_step(self):
+    def test_build_dialogue_history_single_step(self) -> None:
         """Test building dialogue history with one step."""
         tree = DialogueTree(self.nodes, self.params)
 
@@ -265,7 +266,7 @@ class TestDialogueTree:
 class TestDialogueTreeManager:
     """Tests for DialogueTreeManager class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test data."""
         self.test_data = {
             "nodes": {
@@ -278,13 +279,13 @@ class TestDialogueTreeManager:
             "params": {"test_param": 100},
         }
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test initialization."""
         manager = DialogueTreeManager("test.json")
         assert manager.file_path == Path("test.json")
         assert manager.tree is None
 
-    def test_load_tree_success(self):
+    def test_load_tree_success(self) -> None:
         """Test successful tree loading."""
         json_content = json.dumps(self.test_data)
 
@@ -297,21 +298,21 @@ class TestDialogueTreeManager:
             assert tree.params == self.test_data["params"]
             assert manager.tree == tree
 
-    def test_load_tree_file_not_found(self):
+    def test_load_tree_file_not_found(self) -> None:
         """Test loading when file doesn't exist."""
         with patch("builtins.open", side_effect=FileNotFoundError()):
             manager = DialogueTreeManager("nonexistent.json")
             with pytest.raises(DialogueTreeError, match="not found"):
                 manager.load_tree()
 
-    def test_load_tree_invalid_json(self):
+    def test_load_tree_invalid_json(self) -> None:
         """Test loading invalid JSON."""
         with patch("builtins.open", mock_open(read_data="invalid json")):
             manager = DialogueTreeManager("test.json")
             with pytest.raises(DialogueTreeError, match="Invalid JSON"):
                 manager.load_tree()
 
-    def test_save_tree_success(self):
+    def test_save_tree_success(self) -> None:
         """Test successful tree saving."""
         tree = DialogueTree.from_dict(self.test_data)
 
@@ -327,19 +328,19 @@ class TestDialogueTreeManager:
             written_data = "".join(call.args[0] for call in handle.write.call_args_list)
             assert json.loads(written_data) == self.test_data
 
-    def test_save_tree_no_tree(self):
+    def test_save_tree_no_tree(self) -> None:
         """Test saving when no tree is loaded."""
         manager = DialogueTreeManager("test.json")
         with pytest.raises(DialogueTreeError, match="No tree to save"):
             manager.save_tree()
 
-    def test_create_backup_success(self):
+    def test_create_backup_success(self) -> None:
         """Test successful backup creation."""
         tree = DialogueTree.from_dict(self.test_data)
 
         mock_file = mock_open()
         with patch("builtins.open", mock_file):
-            with patch("dialogue_tree.datetime") as mock_datetime:
+            with patch("src.dialogue_tree.datetime") as mock_datetime:
                 mock_datetime.now.return_value.strftime.return_value = "20231225_120000"
 
                 manager = DialogueTreeManager("test.json")
@@ -350,7 +351,7 @@ class TestDialogueTreeManager:
                 assert backup_path == expected_path
                 mock_file.assert_called_once_with(expected_path, "w", encoding="utf-8")
 
-    def test_create_backup_no_tree(self):
+    def test_create_backup_no_tree(self) -> None:
         """Test backup creation when no tree is loaded."""
         manager = DialogueTreeManager("test.json")
         with pytest.raises(DialogueTreeError, match="No tree to backup"):
@@ -360,7 +361,7 @@ class TestDialogueTreeManager:
 class TestValidateGeneratedNode:
     """Tests for validate_generated_node function."""
 
-    def test_valid_node(self):
+    def test_valid_node(self) -> None:
         """Test validation of a valid node."""
         node = {
             "situation": "Test situation",
@@ -371,40 +372,43 @@ class TestValidateGeneratedNode:
         }
         assert validate_generated_node(node) is True
 
-    def test_invalid_not_dict(self):
+    def test_invalid_not_dict(self) -> None:
         """Test validation when node is not a dictionary."""
-        assert validate_generated_node("not a dict") is False
-        assert validate_generated_node(None) is False
-        assert validate_generated_node([]) is False
+        assert validate_generated_node("not a dict") is False  # type: ignore
+        assert validate_generated_node(None) is False  # type: ignore
+        assert validate_generated_node([]) is False  # type: ignore
 
-    def test_invalid_no_situation(self):
+    def test_invalid_no_situation(self) -> None:
         """Test validation when situation is missing."""
-        node = {"choices": []}
+        node: Dict[str, Any] = {"choices": []}
         assert validate_generated_node(node) is False
 
-    def test_invalid_situation_not_string(self):
+    def test_invalid_situation_not_string(self) -> None:
         """Test validation when situation is not a string."""
-        node = {"situation": 123, "choices": []}
+        node: Dict[str, Any] = {"situation": 123, "choices": []}
         assert validate_generated_node(node) is False
 
-    def test_invalid_no_choices(self):
+    def test_invalid_no_choices(self) -> None:
         """Test validation when choices is missing."""
-        node = {"situation": "Test"}
+        node: Dict[str, Any] = {"situation": "Test"}
         assert validate_generated_node(node) is False
 
-    def test_invalid_choices_not_list(self):
+    def test_invalid_choices_not_list(self) -> None:
         """Test validation when choices is not a list."""
-        node = {"situation": "Test", "choices": "not a list"}
+        node: Dict[str, Any] = {"situation": "Test", "choices": "not a list"}
         assert validate_generated_node(node) is False
 
-    def test_invalid_too_few_choices(self):
+    def test_invalid_too_few_choices(self) -> None:
         """Test validation when there are too few choices."""
-        node = {"situation": "Test", "choices": [{"text": "Only one", "next": None}]}
+        node: Dict[str, Any] = {
+            "situation": "Test",
+            "choices": [{"text": "Only one", "next": None}],
+        }
         assert validate_generated_node(node) is False
 
-    def test_invalid_too_many_choices(self):
+    def test_invalid_too_many_choices(self) -> None:
         """Test validation when there are too many choices."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [
                 {"text": "Choice 1", "next": None},
@@ -415,41 +419,41 @@ class TestValidateGeneratedNode:
         }
         assert validate_generated_node(node) is False
 
-    def test_invalid_choice_not_dict(self):
+    def test_invalid_choice_not_dict(self) -> None:
         """Test validation when choice is not a dictionary."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": ["not a dict", {"text": "Valid", "next": None}],
         }
         assert validate_generated_node(node) is False
 
-    def test_invalid_choice_no_text(self):
+    def test_invalid_choice_no_text(self) -> None:
         """Test validation when choice has no text."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [{"next": None}, {"text": "Valid", "next": None}],
         }
         assert validate_generated_node(node) is False
 
-    def test_invalid_choice_text_not_string(self):
+    def test_invalid_choice_text_not_string(self) -> None:
         """Test validation when choice text is not a string."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [{"text": 123, "next": None}, {"text": "Valid", "next": None}],
         }
         assert validate_generated_node(node) is False
 
-    def test_invalid_choice_no_next(self):
+    def test_invalid_choice_no_next(self) -> None:
         """Test validation when choice has no next field."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [{"text": "Missing next"}, {"text": "Valid", "next": None}],
         }
         assert validate_generated_node(node) is False
 
-    def test_invalid_choice_next_not_null(self):
+    def test_invalid_choice_next_not_null(self) -> None:
         """Test validation when choice next is not null."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [
                 {"text": "Invalid", "next": "some_node"},
@@ -458,9 +462,9 @@ class TestValidateGeneratedNode:
         }
         assert validate_generated_node(node) is False
 
-    def test_invalid_effects_not_dict(self):
+    def test_invalid_effects_not_dict(self) -> None:
         """Test validation when effects is not a dictionary."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [
                 {"text": "Invalid", "next": None, "effects": "not a dict"},
@@ -469,9 +473,9 @@ class TestValidateGeneratedNode:
         }
         assert validate_generated_node(node) is False
 
-    def test_valid_effects_optional(self):
+    def test_valid_effects_optional(self) -> None:
         """Test that effects field is optional."""
-        node = {
+        node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [
                 {"text": "No effects", "next": None},
