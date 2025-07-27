@@ -98,7 +98,7 @@ class TestDialogueTree:
         rules = {"tone": "dramatic", "voice": "third person"}
         scene = {"setting": "medieval kingdom", "atmosphere": "tense"}
         tree = DialogueTree(self.nodes, self.params, rules, scene)
-        
+
         assert tree.nodes == self.nodes
         assert tree.params == self.params
         assert tree.rules == rules
@@ -159,10 +159,10 @@ class TestDialogueTree:
         tree = DialogueTree(self.nodes, self.params, rules, scene)
         result = tree.to_dict()
         expected = {
-            "nodes": self.nodes, 
+            "nodes": self.nodes,
             "params": self.params,
             "rules": rules,
-            "scene": scene
+            "scene": scene,
         }
         assert result == expected
 
@@ -180,10 +180,10 @@ class TestDialogueTree:
         rules = {"tone": "dramatic"}
         scene = {"setting": "medieval kingdom"}
         data = {
-            "nodes": self.nodes, 
+            "nodes": self.nodes,
             "params": self.params,
             "rules": rules,
-            "scene": scene
+            "scene": scene,
         }
         tree = DialogueTree.from_dict(data)
         assert tree.nodes == self.nodes

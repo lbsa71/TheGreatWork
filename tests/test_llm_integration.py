@@ -88,7 +88,7 @@ class TestPromptGenerator:
         rules = {
             "language": "English",
             "tone": "dramatic and serious",
-            "voice": "third person narrative"
+            "voice": "third person narrative",
         }
 
         prompt = PromptGenerator.generate_node_prompt(
@@ -108,7 +108,7 @@ class TestPromptGenerator:
         scene = {
             "setting": "A medieval kingdom",
             "time_period": "Medieval era",
-            "atmosphere": "Tense and uncertain"
+            "atmosphere": "Tense and uncertain",
         }
 
         prompt = PromptGenerator.generate_node_prompt(

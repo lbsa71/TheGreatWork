@@ -222,14 +222,14 @@ def create_sample_tree(file_path: Path) -> None:
             "language": "English",
             "tone": "dramatic and serious",
             "voice": "third person narrative",
-            "style": "medieval fantasy with political intrigue"
+            "style": "medieval fantasy with political intrigue",
         },
         "scene": {
             "setting": "A medieval kingdom in turmoil",
             "time_period": "Medieval era, similar to 12th century Europe",
             "location": "The royal castle and court",
             "atmosphere": "Tense and uncertain following the king's sudden death",
-            "key_elements": "Political maneuvering, loyalty conflicts, succession crisis"
+            "key_elements": "Political maneuvering, loyalty conflicts, succession crisis",
         },
         "nodes": {
             "start": {

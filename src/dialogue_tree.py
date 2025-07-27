@@ -41,11 +41,13 @@ class DialogueNode:
 class DialogueTree:
     """Manages a complete dialogue tree with nodes and parameters."""
 
-    def __init__(self, 
-                 nodes: Dict[str, Any], 
-                 params: Dict[str, Union[int, float]],
-                 rules: Optional[Dict[str, Any]] = None,
-                 scene: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        nodes: Dict[str, Any],
+        params: Dict[str, Union[int, float]],
+        rules: Optional[Dict[str, Any]] = None,
+        scene: Optional[Dict[str, Any]] = None,
+    ):
         self.nodes = nodes
         self.params = params
         self.rules = rules or {}
@@ -151,10 +153,10 @@ class DialogueTree:
             )
 
         return cls(
-            nodes=data["nodes"], 
+            nodes=data["nodes"],
             params=data["params"],
             rules=data.get("rules"),
-            scene=data.get("scene")
+            scene=data.get("scene"),
         )
 
 
