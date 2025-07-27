@@ -4,20 +4,20 @@ Tests for dialogue_tree module.
 """
 
 import json
-import pytest
+import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
-import sys
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from dialogue_tree import (
     DialogueNode,
     DialogueTree,
-    DialogueTreeManager,
     DialogueTreeError,
+    DialogueTreeManager,
     validate_generated_node,
 )
 
@@ -236,7 +236,7 @@ class TestDialogueTreeManager:
                 manager.tree = tree
                 backup_path = manager.create_backup()
 
-                expected_path = Path("test_backup_20231225_120000.json")
+                expected_path = Path("backup/test_backup_20231225_120000.json")
                 assert backup_path == expected_path
                 mock_file.assert_called_once_with(expected_path, "w", encoding="utf-8")
 

@@ -164,6 +164,9 @@ pytest tests/ --cov=src --cov-report=html
 
 ```bash
 # Development tools are already installed via requirements.txt
+# Sort imports
+isort src/ tests/ autofill_dialogue.py
+
 # Format code
 black src/ tests/ autofill_dialogue.py
 

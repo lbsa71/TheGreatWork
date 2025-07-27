@@ -4,14 +4,14 @@ Tests for llm_integration module.
 """
 
 import json
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-
 import sys
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-from llm_integration import PromptGenerator, OllamaClient, NodeGenerator, LLMError
+from llm_integration import LLMError, NodeGenerator, OllamaClient, PromptGenerator
 
 
 class TestPromptGenerator:

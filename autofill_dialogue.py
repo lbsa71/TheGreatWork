@@ -20,11 +20,11 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from dialogue_tree import (
     DialogueTree,
-    DialogueTreeManager,
     DialogueTreeError,
+    DialogueTreeManager,
     validate_generated_node,
 )
-from llm_integration import OllamaClient, NodeGenerator
+from llm_integration import NodeGenerator, OllamaClient
 
 # Configure logging
 logging.basicConfig(

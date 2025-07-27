@@ -4,12 +4,12 @@ Tests for the main autofill_dialogue script.
 """
 
 import json
-import pytest
+import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock, mock_open
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
-import sys
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -305,7 +305,7 @@ class TestMain:
 
             assert result == 0
             # Check that default arguments were used
-            mock_class.assert_called_once_with(Path("tree.json"), "llama3")
+            mock_class.assert_called_once_with(Path("tree.json"), "llama3", None)
 
     def test_main_verbose_flag(self):
         """Test main function with verbose flag."""
@@ -340,4 +340,4 @@ class TestMain:
             result = main()
 
             assert result == 0
-            mock_class.assert_called_once_with(Path("tree.json"), "mistral")
+            mock_class.assert_called_once_with(Path("tree.json"), "mistral", None)

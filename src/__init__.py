@@ -8,8 +8,8 @@ __version__ = "1.0.0"
 __author__ = "Bootstrap Game Dialog Generator Team"
 __description__ = "Autonomous Dialogue Tree Completion Script Using a Local LLM"
 
-from .dialogue_tree import DialogueTree, DialogueTreeManager, DialogueNode
-from .llm_integration import OllamaClient, NodeGenerator, PromptGenerator
+from .dialogue_tree import DialogueNode, DialogueTree, DialogueTreeManager
+from .llm_integration import NodeGenerator, OllamaClient, PromptGenerator
 
 __all__ = [
     "DialogueTree",

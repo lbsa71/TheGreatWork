@@ -35,6 +35,11 @@ addopts = "--cov=src --cov-report=html --cov-report=term-missing"
 line-length = 88
 target-version = ['py38']
 
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+
 [tool.mypy]
 python_version = "3.9"
 warn_return_any = true
