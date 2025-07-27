@@ -90,6 +90,12 @@ python autofill_dialogue.py tree.json --max-nodes 10
 # Create a sample tree file
 python autofill_dialogue.py --create-sample my_tree.json
 
+# Launch interactive debugger
+python autofill_dialogue.py tree.json --debug
+
+# Launch debugger starting from a specific node
+python autofill_dialogue.py tree.json --debug --start-node node1
+
 # Show help
 python autofill_dialogue.py --help
 ```
@@ -187,6 +193,7 @@ pytest tests/ -v
 ├── src/                      # Source code
 │   ├── dialogue_tree.py      # Core dialogue tree logic
 │   ├── llm_integration.py    # LLM integration and prompt generation
+│   ├── debugger.py           # Interactive dialogue tree debugger
 │   └── __init__.py           # Package initialization
 ├── tests/                    # Unit tests
 │   ├── test_dialogue_tree.py
@@ -206,7 +213,85 @@ pytest tests/ -v
 └── README.md               # This file
 ```
 
-## How It Works
+## Interactive Dialogue Tree Debugger
+
+This tool includes an interactive debugger for navigating and testing dialogue trees in real-time.
+
+### Features
+
+- **Interactive Navigation**: Browse through dialogue nodes using simple keyboard commands
+- **History Tracking**: View the dialogue path that led to the current node
+- **Real-time Information**: See current node situation, available choices, and effects
+- **Quick Navigation**: Jump to specific nodes by ID or navigate by single keypress
+- **Cross-platform**: Works on Windows, macOS, and Linux
+
+### Usage
+
+Launch the debugger with:
+
+```bash
+python autofill_dialogue.py tree.json --debug
+```
+
+Or start from a specific node:
+
+```bash
+python autofill_dialogue.py tree.json --debug --start-node node_id
+```
+
+### Debugger Controls
+
+- **1-9**: Select a choice by number
+- **u**: Go up to the parent node
+- **Enter**: Enter a node ID directly to jump to that node
+- **q**: Quit the debugger
+
+### Navigation Example
+
+```
+=========================================
+DIALOGUE TREE DEBUGGER
+=========================================
+
+HISTORY:
+----------------------------------------
+1. Situation: The king is dead.
+   Player chose: Mourn publicly
+
+CURRENT NODE: node1
+----------------------------------------
+📖 You decide to mourn publicly. The court watches your reaction carefully.
+
+AVAILABLE CHOICES:
+----------------------------------------
+1. Organize a grand funeral
+   → Next: node_124
+   ⚡ Effects: loyalty:10, resources:-5
+
+2. Keep the mourning simple
+   → Next: node_125
+   ⚡ Effects: loyalty:5, resources:5
+
+NAVIGATION:
+----------------------------------------
+1-9     : Choose option by number
+u       : Go up (to parent node)
+q       : Quit debugger
+Enter   : Enter node ID directly
+
+Current game parameters:
+  loyalty:50, ambition:30, wisdom:40, charisma:35
+
+Press a key to navigate...
+```
+
+The debugger provides a complete view of:
+- **Dialogue History**: The path taken to reach the current node
+- **Current Situation**: The text and context of the current node
+- **Available Choices**: All options with their effects and destinations
+- **Game State**: Current parameter values that influence the story
+
+This makes it easy to test dialogue flows, debug branching logic, and understand how choices affect the game state.
 
 1. **Load Tree**: Reads the JSON dialogue tree file
 2. **Find Incomplete Nodes**: Identifies nodes marked as `null`

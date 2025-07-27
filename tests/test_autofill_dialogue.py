@@ -341,3 +341,41 @@ class TestMain:
 
             assert result == 0
             mock_class.assert_called_once_with(Path("tree.json"), "mistral", None)
+
+    @patch('autofill_dialogue.DialogueTreeManager')
+    @patch('autofill_dialogue.run_debugger')
+    def test_main_debug_mode(self, mock_run_debugger, mock_manager_class):
+        """Test main function with debug mode."""
+        mock_manager = MagicMock()
+        mock_tree = MagicMock()
+        mock_manager.load_tree.return_value = mock_tree
+        mock_manager_class.return_value = mock_manager
+        
+        test_args = ["autofill_dialogue.py", "tree.json", "--debug"]
+        
+        # Mock file exists
+        with patch('sys.argv', test_args), \
+             patch('pathlib.Path.exists', return_value=True):
+            result = main()
+        
+        assert result == 0
+        mock_run_debugger.assert_called_once_with(mock_tree, None)
+    
+    @patch('autofill_dialogue.DialogueTreeManager')
+    @patch('autofill_dialogue.run_debugger')
+    def test_main_debug_mode_with_start_node(self, mock_run_debugger, mock_manager_class):
+        """Test main function with debug mode and start node."""
+        mock_manager = MagicMock()
+        mock_tree = MagicMock()
+        mock_manager.load_tree.return_value = mock_tree
+        mock_manager_class.return_value = mock_manager
+        
+        test_args = ["autofill_dialogue.py", "tree.json", "--debug", "--start-node", "node1"]
+        
+        # Mock file exists
+        with patch('sys.argv', test_args), \
+             patch('pathlib.Path.exists', return_value=True):
+            result = main()
+        
+        assert result == 0
+        mock_run_debugger.assert_called_once_with(mock_tree, 'node1')
