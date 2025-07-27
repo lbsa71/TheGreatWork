@@ -79,6 +79,54 @@ class DialogueTree:
         """Get a node by its ID."""
         return self.nodes.get(node_id)
 
+    def build_dialogue_history(self, target_node_id: str) -> str:
+        """
+        Build a dialogue history by backtracking from target node to root.
+
+        Args:
+            target_node_id: The node to build history for
+
+        Returns:
+            Formatted string containing the dialogue history
+        """
+        history_steps = []
+        current_node_id = target_node_id
+
+        # Backtrack through the tree to build history
+        while current_node_id:
+            parent_info = self.find_parent_and_choice(current_node_id)
+            if parent_info is None:
+                # We've reached the root or a disconnected node
+                break
+
+            parent_id, choice = parent_info
+            parent_node = self.get_node(parent_id)
+
+            if parent_node is None:
+                break
+
+            # Add this step to the history
+            situation = parent_node.get("situation", "")
+            choice_text = choice.get("text", "")
+            history_steps.append((situation, choice_text))
+
+            # Move to the parent for next iteration
+            current_node_id = parent_id
+
+        # Reverse to get chronological order (root to target)
+        history_steps.reverse()
+
+        # Format the history as a readable string
+        if not history_steps:
+            return "No previous dialogue history available."
+
+        history_lines = ["Dialogue History:"]
+        for i, (situation, choice) in enumerate(history_steps, 1):
+            history_lines.append(f"{i}. Situation: {situation}")
+            history_lines.append(f"   Player chose: {choice}")
+
+        return "\n".join(history_lines)
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the tree to a dictionary representation."""
         return {"nodes": self.nodes, "params": self.params}

@@ -178,11 +178,16 @@ class DialogueAutofiller:
         logger.info(f"  Parent: {parent_id}")
         logger.info(f"  Choice: {choice_text}")
 
+        # Build dialogue history for this node
+        dialogue_history = tree.build_dialogue_history(node_id)
+        logger.debug(f"Dialogue history:\n{dialogue_history}")
+
         # Generate the node
         generated_node = self.node_generator.generate_node(
             parent_situation=parent_situation,
             choice_text=choice_text,
             params=tree.params,
+            dialogue_history=dialogue_history,
         )
 
         if generated_node is None:

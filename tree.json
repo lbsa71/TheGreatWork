@@ -151,7 +151,30 @@
         }
       ]
     },
-    "node_933": null,
+    "node_933": {
+      "situation": "As you continue to mourn publicly, you notice that some courtiers are approaching you, whispering condolences and trying to gauge your reaction to the rumors about your mother.",
+      "choices": [
+        {
+          "text": "Listen carefully to what they have to say, trying to gauge their motives",
+          "next": "node_504",
+          "effects": {
+            "ambition": 5
+          }
+        },
+        {
+          "text": " Politely decline their condolences, telling them you're too grief-stricken to discuss anything else",
+          "next": "node_544",
+          "effects": {}
+        },
+        {
+          "text": "Openly confront the courtiers about the rumors and demand they stop spreading them",
+          "next": "node_253",
+          "effects": {
+            "loyalty": -10
+          }
+        }
+      ]
+    },
     "node_143": {
       "situation": "As you propose naming a regent, your advisors look at each other nervously, sensing that this may be a sign of weakness.",
       "choices": [
@@ -235,7 +258,31 @@
         }
       ]
     },
-    "node_726": null,
+    "node_726": {
+      "situation": "The royal physician hesitates, looking uncomfortable.",
+      "choices": [
+        {
+          "text": "Leave him to his doubts",
+          "next": "node_341",
+          "effects": {}
+        },
+        {
+          "text": "Press him for an answer",
+          "next": "node_625",
+          "effects": {
+            "loyalty": -5
+          }
+        },
+        {
+          "text": "Show compassion and understanding",
+          "next": "node_869",
+          "effects": {
+            "wisdom": 10,
+            "charisma": 5
+          }
+        }
+      ]
+    },
     "node_1010": {
       "situation": "The royal physician looks concerned and begins to explain that there were some subtle signs that might have indicated a pre-existing condition.",
       "choices": [
@@ -573,8 +620,59 @@
         }
       ]
     },
-    "node_936": null,
-    "node_418": null,
+    "node_936": {
+      "situation": "Your advisors look at each other, seemingly unimpressed by your proposal to 'wing it'. One of them, a seasoned veteran, speaks up.",
+      "choices": [
+        {
+          "text": "I'm willing to listen to their concerns and work together to find a solution",
+          "next": "node_142",
+          "effects": {
+            "charisma": 5
+          }
+        },
+        {
+          "text": "Fine, don't like my idea? I'll just do things my way then",
+          "next": "node_261",
+          "effects": {
+            "ambition": 10,
+            "loyalty": -15
+          }
+        },
+        {
+          "text": "Okay, what's the worst that could happen if we just make it up as we go?",
+          "next": "node_472",
+          "effects": {
+            "wisdom": -5,
+            "charisma": 2
+          }
+        }
+      ]
+    },
+    "node_418": {
+      "situation": "Your advisors seem unconvinced, and one of them speaks up again. 'With all due respect, young king,' they say, 'your father was a wise ruler, but he also knew how to share power and listen to others. Are you sure you're ready for this kind of responsibility?'",
+      "choices": [
+        {
+          "text": "I understand their concerns, but I'm not going to let my own doubts get in the way.",
+          "next": "node_936",
+          "effects": {}
+        },
+        {
+          "text": "Let's put aside our differences and work together to secure the kingdom's future.",
+          "next": "node_213",
+          "effects": {
+            "charisma": 5
+          }
+        },
+        {
+          "text": "I don't need their input or approval. I'll show them what a true leader looks like.",
+          "next": "node_725",
+          "effects": {
+            "ambition": 10,
+            "loyalty": -10
+          }
+        }
+      ]
+    },
     "node_903": null,
     "node_568": null,
     "node_910": null,
@@ -617,7 +715,21 @@
     "node_528": null,
     "node_975": null,
     "node_402": null,
-    "node_649": null
+    "node_649": null,
+    "node_504": null,
+    "node_544": null,
+    "node_253": null,
+    "node_341": null,
+    "node_625": null,
+    "node_869": null,
+    "node_537": null,
+    "node_243": null,
+    "node_1041": null,
+    "node_213": null,
+    "node_725": null,
+    "node_142": null,
+    "node_261": null,
+    "node_472": null
   },
   "params": {
     "loyalty": 50,

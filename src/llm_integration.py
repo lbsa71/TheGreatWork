@@ -24,7 +24,10 @@ class PromptGenerator:
 
     @staticmethod
     def generate_node_prompt(
-        parent_situation: str, choice_text: str, params: Dict[str, Any]
+        parent_situation: str,
+        choice_text: str,
+        params: Dict[str, Any],
+        dialogue_history: Optional[str] = None,
     ) -> str:
         """
         Generate a prompt for creating a new dialogue node.
@@ -33,32 +36,41 @@ class PromptGenerator:
             parent_situation: The situation description of the parent node
             choice_text: The text of the choice that leads to this node
             params: Game parameters (loyalty, ambition, etc.)
+            dialogue_history: Optional historical context from previous nodes
 
         Returns:
             Formatted prompt string
         """
-        prompt = f"""You are writing a branching dialogue tree for a visual novel.
+        prompt_parts = ["You are writing a branching dialogue tree for a visual novel."]
 
-The parent node has this situation:
-"{parent_situation}"
+        # Include dialogue history if available
+        if dialogue_history:
+            prompt_parts.extend(["", dialogue_history, ""])
 
-The player selected this choice:
-"{choice_text}"
+        prompt_parts.extend(
+            [
+                f"The current parent node has this situation:",
+                f'"{parent_situation}"',
+                "",
+                f"The player selected this choice:",
+                f'"{choice_text}"',
+                "",
+                f"Parameters: {json.dumps(params)}",
+                "",
+                "Please generate a new dialogue node as a JSON object with:",
+                "- 'situation': string",
+                "- 'choices': a list of 2–3 options, each with:",
+                "  - 'text': string",
+                "  - 'next': null (placeholder)",
+                "  - 'effects': dictionary of parameter changes (e.g., {{\"loyalty\": 10}})",
+                "",
+                "IMPORTANT: Use only valid JSON syntax. Numbers should be written without + prefix (e.g., use 10 not +10).",
+                "",
+                "Respond with valid JSON only.",
+            ]
+        )
 
-Parameters: {json.dumps(params)}
-
-Please generate a new dialogue node as a JSON object with:
-- 'situation': string
-- 'choices': a list of 2–3 options, each with:
-  - 'text': string
-  - 'next': null (placeholder)
-  - 'effects': dictionary of parameter changes (e.g., {{"loyalty": 10}})
-
-IMPORTANT: Use only valid JSON syntax. Numbers should be written without + prefix (e.g., use 10 not +10).
-
-Respond with valid JSON only."""
-
-        return prompt
+        return "\n".join(prompt_parts)
 
 
 class OllamaClient:
@@ -146,6 +158,7 @@ class NodeGenerator:
         parent_situation: str,
         choice_text: str,
         params: Dict[str, Any],
+        dialogue_history: Optional[str] = None,
         max_retries: int = 3,
     ) -> Optional[Dict[str, Any]]:
         """
@@ -155,13 +168,14 @@ class NodeGenerator:
             parent_situation: The situation of the parent node
             choice_text: The choice text that leads to this node
             params: Game parameters
+            dialogue_history: Optional historical context from previous nodes
             max_retries: Maximum number of retry attempts
 
         Returns:
             Generated node data or None if generation failed
         """
         prompt = self.prompt_generator.generate_node_prompt(
-            parent_situation, choice_text, params
+            parent_situation, choice_text, params, dialogue_history
         )
 
         # Debug: Log the prompt being sent
