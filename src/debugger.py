@@ -29,19 +29,19 @@ logger = logging.getLogger(__name__)
 class KeyboardInput:
     """Cross-platform keyboard input handler."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.old_settings = None
 
-    def __enter__(self):
+    def __enter__(self) -> "KeyboardInput":
         if not WINDOWS:
             # Unix/Linux/macOS
-            self.old_settings = termios.tcgetattr(sys.stdin)
-            tty.setraw(sys.stdin.fileno())
+            self.old_settings = termios.tcgetattr(sys.stdin)  # type: ignore
+            tty.setraw(sys.stdin.fileno())  # type: ignore
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type: Any, value: Any, traceback: Any) -> None:
         if not WINDOWS and self.old_settings:
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)  # type: ignore
 
     def get_char(self) -> str:
         """Get a single character from stdin without requiring Enter."""
@@ -92,7 +92,7 @@ class DialogueDebugger:
 
         return root_candidates[0] if root_candidates else None
 
-    def _clear_screen(self):
+    def _clear_screen(self) -> None:
         """Clear the terminal screen."""
         # Only clear screen in interactive mode, not during tests
         try:
@@ -107,7 +107,7 @@ class DialogueDebugger:
             # If we can't clear screen, just continue
             pass
 
-    def _display_node(self):
+    def _display_node(self) -> None:
         """Display the current node information."""
         self._clear_screen()
 
@@ -117,15 +117,19 @@ class DialogueDebugger:
         print()
 
         # Display dialogue history
-        history = self.tree.build_dialogue_history(self.current_node_id)
-        if history and "No previous dialogue history" not in history:
-            print("HISTORY:")
-            print("-" * 40)
-            print(history)
-            print()
+        if self.current_node_id is not None:
+            history = self.tree.build_dialogue_history(self.current_node_id)
+            if history and "No previous dialogue history" not in history:
+                print("HISTORY:")
+                print("-" * 40)
+                print(history)
+                print()
 
         # Display current node
-        current_node = self.tree.get_node(self.current_node_id)
+        if self.current_node_id is not None:
+            current_node = self.tree.get_node(self.current_node_id)
+        else:
+            current_node = None
         print(f"CURRENT NODE: {self.current_node_id}")
         print("-" * 40)
 
@@ -175,6 +179,10 @@ class DialogueDebugger:
 
     def _handle_choice_selection(self, choice_num: int) -> bool:
         """Handle selection of a choice by number."""
+        if self.current_node_id is None:
+            print("❌ No current node!")
+            input("Press Enter to continue...")
+            return False
         current_node = self.tree.get_node(self.current_node_id)
         if current_node is None:
             print("❌ Cannot navigate from null node!")
@@ -198,6 +206,10 @@ class DialogueDebugger:
 
     def _handle_go_up(self) -> bool:
         """Handle going up to parent node."""
+        if self.current_node_id is None:
+            print("❌ No current node!")
+            input("Press Enter to continue...")
+            return False
         parent_info = self.tree.find_parent_and_choice(self.current_node_id)
         if parent_info:
             parent_id, _ = parent_info
@@ -216,9 +228,9 @@ class DialogueDebugger:
         if not WINDOWS:
             try:
                 # Get current settings
-                old_settings = termios.tcgetattr(sys.stdin)
+                old_settings = termios.tcgetattr(sys.stdin)  # type: ignore
                 # Restore normal mode temporarily
-                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)  # type: ignore
             except:
                 # If we can't restore settings, continue anyway
                 pass
@@ -241,11 +253,11 @@ class DialogueDebugger:
             # Re-enable raw mode for continued operation
             if not WINDOWS:
                 try:
-                    tty.setraw(sys.stdin.fileno())
+                    tty.setraw(sys.stdin.fileno())  # type: ignore
                 except:
                     pass
 
-    def run(self):
+    def run(self) -> None:
         """Run the interactive debugger."""
         print("Starting dialogue tree debugger...")
         print("Loading tree...")
@@ -289,7 +301,7 @@ class DialogueDebugger:
             print("\nDebugger session ended.")
 
 
-def run_debugger(tree: DialogueTree, start_node_id: Optional[str] = None):
+def run_debugger(tree: DialogueTree, start_node_id: Optional[str] = None) -> None:
     """
     Run the interactive dialogue debugger.
 

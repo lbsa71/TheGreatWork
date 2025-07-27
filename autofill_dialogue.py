@@ -18,14 +18,14 @@ from typing import Optional
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from dialogue_tree import (
+from src.dialogue_tree import (
     DialogueTree,
     DialogueTreeError,
     DialogueTreeManager,
     validate_generated_node,
 )
-from llm_integration import NodeGenerator, OllamaClient
-from debugger import run_debugger
+from src.llm_integration import NodeGenerator, OllamaClient
+from src.debugger import run_debugger
 
 # Configure logging
 logging.basicConfig(

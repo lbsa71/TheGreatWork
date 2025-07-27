@@ -4,6 +4,7 @@ Tests for the dialogue tree debugger.
 """
 
 import pytest
+from typing import Any
 from unittest.mock import patch, MagicMock
 import sys
 from pathlib import Path
@@ -11,15 +12,15 @@ from pathlib import Path
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dialogue_tree import DialogueTree
-from debugger import DialogueDebugger, KeyboardInput, run_debugger
+from src.dialogue_tree import DialogueTree
+from src.debugger import DialogueDebugger, KeyboardInput, run_debugger
 
 
 class TestKeyboardInput:
     """Test the KeyboardInput class."""
 
     @patch("debugger.WINDOWS", True)
-    def test_context_manager(self):
+    def test_context_manager(self) -> None:
         """Test that KeyboardInput can be used as a context manager."""
         # Test with Windows mode to avoid termios issues
         with KeyboardInput() as kb:
@@ -28,7 +29,7 @@ class TestKeyboardInput:
     @patch("debugger.WINDOWS", False)
     @patch("debugger.termios")
     @patch("debugger.tty")
-    def test_unix_setup(self, mock_tty, mock_termios):
+    def test_unix_setup(self, mock_tty: Any, mock_termios: Any) -> None:
         """Test Unix/Linux setup."""
         mock_termios.tcgetattr.return_value = "old_settings"
 
@@ -40,7 +41,7 @@ class TestKeyboardInput:
 
     @patch("debugger.WINDOWS", True)
     @patch("debugger.msvcrt")
-    def test_windows_get_char(self, mock_msvcrt):
+    def test_windows_get_char(self, mock_msvcrt: Any) -> None:
         """Test Windows character input."""
         mock_msvcrt.getch.return_value = b"a"
 
@@ -53,7 +54,7 @@ class TestDialogueDebugger:
     """Test the DialogueDebugger class."""
 
     @pytest.fixture
-    def sample_tree(self):
+    def sample_tree(self) -> Any:
         """Create a sample dialogue tree for testing."""
         tree_data = {
             "nodes": {
@@ -97,19 +98,19 @@ class TestDialogueDebugger:
         }
         return DialogueTree.from_dict(tree_data)
 
-    def test_init_with_start_node(self, sample_tree):
+    def test_init_with_start_node(self, sample_tree: Any) -> None:
         """Test debugger initialization with explicit start node."""
         debugger = DialogueDebugger(sample_tree, "left")
         assert debugger.current_node_id == "left"
         assert debugger.tree == sample_tree
         assert debugger.running is True
 
-    def test_init_auto_find_root(self, sample_tree):
+    def test_init_auto_find_root(self, sample_tree: Any) -> None:
         """Test debugger initialization with auto-detected root."""
         debugger = DialogueDebugger(sample_tree)
         assert debugger.current_node_id == "start"
 
-    def test_init_no_valid_start_node(self):
+    def test_init_no_valid_start_node(self) -> None:
         """Test debugger initialization with no valid start node."""
         tree_data = {"nodes": {"null_node": None}, "params": {}}
         tree = DialogueTree.from_dict(tree_data)
@@ -117,13 +118,13 @@ class TestDialogueDebugger:
         with pytest.raises(ValueError, match="No valid starting node found"):
             DialogueDebugger(tree)
 
-    def test_find_root_node_with_start(self, sample_tree):
+    def test_find_root_node_with_start(self, sample_tree: Any) -> None:
         """Test finding root node when 'start' exists."""
         debugger = DialogueDebugger(sample_tree)
         root = debugger._find_root_node()
         assert root == "start"
 
-    def test_find_root_node_without_start(self):
+    def test_find_root_node_without_start(self) -> None:
         """Test finding root node when 'start' doesn't exist."""
         tree_data = {
             "nodes": {
@@ -143,8 +144,8 @@ class TestDialogueDebugger:
     @patch("sys.stdout.isatty", return_value=False)
     @patch.object(DialogueTree, "build_dialogue_history", return_value="Test history")
     def test_display_node_valid(
-        self, mock_history, mock_isatty, mock_print, sample_tree
-    ):
+        self, mock_history: Any, mock_isatty: Any, mock_print: Any, sample_tree: Any
+    ) -> None:
         """Test displaying a valid node."""
         debugger = DialogueDebugger(sample_tree, "start")
         debugger._display_node()
@@ -163,8 +164,8 @@ class TestDialogueDebugger:
     @patch("sys.stdout.isatty", return_value=False)
     @patch.object(DialogueTree, "build_dialogue_history", return_value="Test history")
     def test_display_node_null(
-        self, mock_history, mock_isatty, mock_print, sample_tree
-    ):
+        self, mock_history: Any, mock_isatty: Any, mock_print: Any, sample_tree: Any
+    ) -> None:
         """Test displaying a null node."""
         debugger = DialogueDebugger(sample_tree, "treasure")
         debugger._display_node()
@@ -173,7 +174,7 @@ class TestDialogueDebugger:
         print_output = " ".join(print_calls)
         assert "This node is NULL" in print_output
 
-    def test_handle_choice_selection_valid(self, sample_tree):
+    def test_handle_choice_selection_valid(self, sample_tree: Any) -> None:
         """Test handling valid choice selection."""
         debugger = DialogueDebugger(sample_tree, "start")
         result = debugger._handle_choice_selection(1)
@@ -181,7 +182,7 @@ class TestDialogueDebugger:
         assert result is True
         assert debugger.current_node_id == "left"
 
-    def test_handle_choice_selection_invalid_number(self, sample_tree):
+    def test_handle_choice_selection_invalid_number(self, sample_tree: Any) -> None:
         """Test handling invalid choice number."""
         debugger = DialogueDebugger(sample_tree, "start")
 
@@ -191,7 +192,7 @@ class TestDialogueDebugger:
         assert result is False
         assert debugger.current_node_id == "start"  # Should not change
 
-    def test_handle_choice_selection_null_node(self, sample_tree):
+    def test_handle_choice_selection_null_node(self, sample_tree: Any) -> None:
         """Test handling choice selection from null node."""
         debugger = DialogueDebugger(sample_tree, "treasure")
 
@@ -201,7 +202,7 @@ class TestDialogueDebugger:
         assert result is False
         assert debugger.current_node_id == "treasure"  # Should not change
 
-    def test_handle_go_up_success(self, sample_tree):
+    def test_handle_go_up_success(self, sample_tree: Any) -> None:
         """Test successfully going up to parent node."""
         debugger = DialogueDebugger(sample_tree, "left")
         result = debugger._handle_go_up()
@@ -209,7 +210,7 @@ class TestDialogueDebugger:
         assert result is True
         assert debugger.current_node_id == "start"
 
-    def test_handle_go_up_no_parent(self):
+    def test_handle_go_up_no_parent(self) -> None:
         """Test going up when no parent exists."""
         # Create a tree with a truly isolated node
         tree_data = {
@@ -232,8 +233,8 @@ class TestDialogueDebugger:
     @patch("debugger.tty", create=True)
     @patch("builtins.input", return_value="right")
     def test_handle_direct_navigation_success(
-        self, mock_input, mock_tty, mock_termios, mock_windows, sample_tree
-    ):
+        self, mock_input: Any, mock_tty: Any, mock_termios: Any, mock_windows: Any, sample_tree: Any
+    ) -> None:
         """Test successful direct navigation."""
         debugger = DialogueDebugger(sample_tree, "start")
         result = debugger._handle_direct_navigation()
@@ -246,8 +247,8 @@ class TestDialogueDebugger:
     @patch("debugger.tty", create=True)
     @patch("builtins.input", return_value="nonexistent")
     def test_handle_direct_navigation_invalid_node(
-        self, mock_input, mock_tty, mock_termios, mock_windows, sample_tree
-    ):
+        self, mock_input: Any, mock_tty: Any, mock_termios: Any, mock_windows: Any, sample_tree: Any
+    ) -> None:
         """Test direct navigation to invalid node."""
         debugger = DialogueDebugger(sample_tree, "start")
 
@@ -262,8 +263,8 @@ class TestDialogueDebugger:
     @patch("debugger.tty", create=True)
     @patch("builtins.input", return_value="")
     def test_handle_direct_navigation_cancel(
-        self, mock_input, mock_tty, mock_termios, mock_windows, sample_tree
-    ):
+        self, mock_input: Any, mock_tty: Any, mock_termios: Any, mock_windows: Any, sample_tree: Any
+    ) -> None:
         """Test canceling direct navigation."""
         debugger = DialogueDebugger(sample_tree, "start")
         result = debugger._handle_direct_navigation()
@@ -276,7 +277,7 @@ class TestRunDebugger:
     """Test the run_debugger function."""
 
     @pytest.fixture
-    def sample_tree(self):
+    def sample_tree(self) -> Any:
         """Create a sample dialogue tree for testing."""
         tree_data = {
             "nodes": {
@@ -291,7 +292,7 @@ class TestRunDebugger:
         return DialogueTree.from_dict(tree_data)
 
     @patch("debugger.DialogueDebugger")
-    def test_run_debugger_success(self, mock_debugger_class, sample_tree):
+    def test_run_debugger_success(self, mock_debugger_class: Any, sample_tree: Any) -> None:
         """Test successful debugger run."""
         mock_debugger = MagicMock()
         mock_debugger_class.return_value = mock_debugger
@@ -303,7 +304,7 @@ class TestRunDebugger:
 
     @patch("debugger.DialogueDebugger")
     @patch("builtins.print")
-    def test_run_debugger_exception(self, mock_print, mock_debugger_class, sample_tree):
+    def test_run_debugger_exception(self, mock_print: Any, mock_debugger_class: Any, sample_tree: Any) -> None:
         """Test debugger run with exception."""
         mock_debugger_class.side_effect = Exception("Test error")
 
