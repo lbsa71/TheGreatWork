@@ -80,6 +80,63 @@ class TestPromptGenerator:
         assert "Mourn publicly" in prompt
         assert "current parent node" in prompt
 
+    def test_generate_node_prompt_with_rules(self):
+        """Test prompt generation with stylistic rules."""
+        parent_situation = "The king is dead."
+        choice_text = "Mourn publicly"
+        params = {"loyalty": 45, "ambition": 80}
+        rules = {
+            "language": "English",
+            "tone": "dramatic and serious",
+            "voice": "third person narrative",
+        }
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params, None, rules
+        )
+
+        assert "STYLISTIC RULES:" in prompt
+        assert "Language: English" in prompt
+        assert "Tone: dramatic and serious" in prompt
+        assert "Voice: third person narrative" in prompt
+
+    def test_generate_node_prompt_with_scene(self):
+        """Test prompt generation with world-building context."""
+        parent_situation = "The king is dead."
+        choice_text = "Mourn publicly"
+        params = {"loyalty": 45, "ambition": 80}
+        scene = {
+            "setting": "A medieval kingdom",
+            "time_period": "Medieval era",
+            "atmosphere": "Tense and uncertain",
+        }
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params, None, None, scene
+        )
+
+        assert "WORLD-BUILDING CONTEXT:" in prompt
+        assert "Setting: A medieval kingdom" in prompt
+        assert "Time_Period: Medieval era" in prompt
+        assert "Atmosphere: Tense and uncertain" in prompt
+
+    def test_generate_node_prompt_with_rules_and_scene(self):
+        """Test prompt generation with both rules and scene."""
+        parent_situation = "The king is dead."
+        choice_text = "Mourn publicly"
+        params = {"loyalty": 45, "ambition": 80}
+        rules = {"tone": "dramatic"}
+        scene = {"setting": "Medieval kingdom"}
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params, None, rules, scene
+        )
+
+        assert "STYLISTIC RULES:" in prompt
+        assert "Tone: dramatic" in prompt
+        assert "WORLD-BUILDING CONTEXT:" in prompt
+        assert "Setting: Medieval kingdom" in prompt
+
 
 class TestOllamaClient:
     """Tests for OllamaClient class."""
@@ -208,7 +265,7 @@ class TestNodeGenerator:
         # Verify
         assert result == node_data
         self.mock_prompt_gen.generate_node_prompt.assert_called_once_with(
-            "Parent situation", "Choice text", {"param": 1}, None
+            "Parent situation", "Choice text", {"param": 1}, None, None, None
         )
         self.mock_client.generate_content.assert_called_once_with("Test prompt")
 

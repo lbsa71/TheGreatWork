@@ -1,4 +1,18 @@
 {
+  "rules": {
+    "language": "English",
+    "tone": "dramatic and serious with emotional depth",
+    "voice": "third person narrative",
+    "style": "medieval fantasy with political intrigue and moral complexity"
+  },
+  "scene": {
+    "setting": "A medieval kingdom in political turmoil",
+    "time_period": "Medieval era, similar to 12th century Europe",
+    "location": "The royal castle, court, and surrounding kingdom",
+    "atmosphere": "Tense and uncertain following the king's sudden death",
+    "key_elements": "Succession crisis, court intrigue, family loyalty vs political ambition",
+    "background": "The kingdom has been stable under the late king's rule, but his sudden death has created a power vacuum with various factions vying for influence"
+  },
   "nodes": {
     "start": {
       "situation": "You are a young noble in a medieval kingdom. Your father, the king, has just died unexpectedly. The court is in mourning, and you must decide how to handle this crisis.",

@@ -90,6 +90,19 @@ class TestDialogueTree:
         """Test initialization."""
         assert self.tree.nodes == self.nodes
         assert self.tree.params == self.params
+        assert self.tree.rules == {}
+        assert self.tree.scene == {}
+
+    def test_init_with_rules_and_scene(self):
+        """Test initialization with rules and scene."""
+        rules = {"tone": "dramatic", "voice": "third person"}
+        scene = {"setting": "medieval kingdom", "atmosphere": "tense"}
+        tree = DialogueTree(self.nodes, self.params, rules, scene)
+
+        assert tree.nodes == self.nodes
+        assert tree.params == self.params
+        assert tree.rules == rules
+        assert tree.scene == scene
 
     def test_find_first_null_node(self):
         """Test finding the first null node."""
@@ -139,12 +152,44 @@ class TestDialogueTree:
         expected = {"nodes": self.nodes, "params": self.params}
         assert result == expected
 
+    def test_to_dict_with_rules_and_scene(self):
+        """Test conversion to dictionary with rules and scene."""
+        rules = {"tone": "dramatic"}
+        scene = {"setting": "medieval kingdom"}
+        tree = DialogueTree(self.nodes, self.params, rules, scene)
+        result = tree.to_dict()
+        expected = {
+            "nodes": self.nodes,
+            "params": self.params,
+            "rules": rules,
+            "scene": scene,
+        }
+        assert result == expected
+
     def test_from_dict(self):
         """Test creation from dictionary."""
         data = {"nodes": self.nodes, "params": self.params}
         tree = DialogueTree.from_dict(data)
         assert tree.nodes == self.nodes
         assert tree.params == self.params
+        assert tree.rules == {}
+        assert tree.scene == {}
+
+    def test_from_dict_with_rules_and_scene(self):
+        """Test creation from dictionary with rules and scene."""
+        rules = {"tone": "dramatic"}
+        scene = {"setting": "medieval kingdom"}
+        data = {
+            "nodes": self.nodes,
+            "params": self.params,
+            "rules": rules,
+            "scene": scene,
+        }
+        tree = DialogueTree.from_dict(data)
+        assert tree.nodes == self.nodes
+        assert tree.params == self.params
+        assert tree.rules == rules
+        assert tree.scene == scene
 
     def test_from_dict_invalid(self):
         """Test creation from invalid dictionary."""

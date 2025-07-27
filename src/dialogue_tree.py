@@ -41,9 +41,17 @@ class DialogueNode:
 class DialogueTree:
     """Manages a complete dialogue tree with nodes and parameters."""
 
-    def __init__(self, nodes: Dict[str, Any], params: Dict[str, Union[int, float]]):
+    def __init__(
+        self,
+        nodes: Dict[str, Any],
+        params: Dict[str, Union[int, float]],
+        rules: Optional[Dict[str, Any]] = None,
+        scene: Optional[Dict[str, Any]] = None,
+    ):
         self.nodes = nodes
         self.params = params
+        self.rules = rules or {}
+        self.scene = scene or {}
 
     def find_first_null_node(self) -> Optional[str]:
         """Find the first node with a null value."""
@@ -129,7 +137,12 @@ class DialogueTree:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the tree to a dictionary representation."""
-        return {"nodes": self.nodes, "params": self.params}
+        result = {"nodes": self.nodes, "params": self.params}
+        if self.rules:
+            result["rules"] = self.rules
+        if self.scene:
+            result["scene"] = self.scene
+        return result
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "DialogueTree":
@@ -139,7 +152,12 @@ class DialogueTree:
                 "Invalid dialogue tree format: missing 'nodes' or 'params'"
             )
 
-        return cls(nodes=data["nodes"], params=data["params"])
+        return cls(
+            nodes=data["nodes"],
+            params=data["params"],
+            rules=data.get("rules"),
+            scene=data.get("scene"),
+        )
 
 
 class DialogueTreeManager:
