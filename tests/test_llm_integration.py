@@ -1,0 +1,248 @@
+#!/usr/bin/env python3
+"""
+Tests for llm_integration module.
+"""
+
+import json
+import sys
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+from llm_integration import LLMError, NodeGenerator, OllamaClient, PromptGenerator
+
+
+class TestPromptGenerator:
+    """Tests for PromptGenerator class."""
+
+    def test_generate_node_prompt(self):
+        """Test prompt generation."""
+        parent_situation = "The king is dead."
+        choice_text = "Mourn publicly"
+        params = {"loyalty": 45, "ambition": 80}
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params
+        )
+
+        assert "The king is dead." in prompt
+        assert "Mourn publicly" in prompt
+        assert '"loyalty": 45' in prompt
+        assert '"ambition": 80' in prompt
+        assert "JSON object" in prompt
+        assert "situation" in prompt
+        assert "choices" in prompt
+        assert "next" in prompt
+        assert "effects" in prompt
+
+
+class TestOllamaClient:
+    """Tests for OllamaClient class."""
+
+    def test_init(self):
+        """Test initialization."""
+        client = OllamaClient()
+        assert client.model == "llama3"
+        assert client._ollama is None
+
+        client = OllamaClient("mistral")
+        assert client.model == "mistral"
+
+    def test_get_ollama_success(self):
+        """Test successful ollama import."""
+        client = OllamaClient()
+
+        mock_ollama = Mock()
+
+        with patch.dict("sys.modules", {"ollama": mock_ollama}):
+            result = client._get_ollama()
+            assert result == mock_ollama
+            assert client._ollama == mock_ollama
+
+    def test_get_ollama_import_error(self):
+        """Test ollama import error."""
+        client = OllamaClient()
+
+        with patch.dict("sys.modules", {"ollama": None}):
+            with pytest.raises(LLMError, match="Ollama package not found"):
+                client._get_ollama()
+
+    def test_generate_content_success(self):
+        """Test successful content generation."""
+        client = OllamaClient()
+        mock_ollama = Mock()
+        mock_response = {"message": {"content": "Generated content"}}
+        mock_ollama.chat.return_value = mock_response
+        client._ollama = mock_ollama
+
+        result = client.generate_content("Test prompt")
+
+        assert result == "Generated content"
+        mock_ollama.chat.assert_called_once_with(
+            model="llama3", messages=[{"role": "user", "content": "Test prompt"}]
+        )
+
+    def test_generate_content_invalid_response(self):
+        """Test generation with invalid response format."""
+        client = OllamaClient()
+        mock_ollama = Mock()
+        mock_ollama.chat.return_value = {"invalid": "response"}
+        client._ollama = mock_ollama
+
+        with pytest.raises(LLMError, match="Invalid response format"):
+            client.generate_content("Test prompt")
+
+    def test_generate_content_exception(self):
+        """Test generation with exception."""
+        client = OllamaClient()
+        mock_ollama = Mock()
+        mock_ollama.chat.side_effect = Exception("Network error")
+        client._ollama = mock_ollama
+
+        with pytest.raises(LLMError, match="Failed to generate content"):
+            client.generate_content("Test prompt")
+
+    def test_is_available_success(self):
+        """Test availability check success."""
+        client = OllamaClient()
+        mock_ollama = Mock()
+        mock_ollama.chat.return_value = {"message": {"content": "Hello"}}
+        client._ollama = mock_ollama
+
+        assert client.is_available() is True
+        mock_ollama.chat.assert_called_once_with(
+            model="llama3", messages=[{"role": "user", "content": "Hello"}]
+        )
+
+    def test_is_available_failure(self):
+        """Test availability check failure."""
+        client = OllamaClient()
+        mock_ollama = Mock()
+        mock_ollama.chat.side_effect = Exception("Connection failed")
+        client._ollama = mock_ollama
+
+        assert client.is_available() is False
+
+
+class TestNodeGenerator:
+    """Tests for NodeGenerator class."""
+
+    def setup_method(self):
+        """Set up test objects."""
+        self.mock_client = Mock(spec=OllamaClient)
+        self.mock_prompt_gen = Mock(spec=PromptGenerator)
+        self.generator = NodeGenerator(self.mock_client, self.mock_prompt_gen)
+
+    def test_init(self):
+        """Test initialization."""
+        client = Mock()
+        generator = NodeGenerator(client)
+
+        assert generator.llm_client == client
+        assert isinstance(generator.prompt_generator, PromptGenerator)
+
+    def test_generate_node_success(self):
+        """Test successful node generation."""
+        # Set up mocks
+        self.mock_prompt_gen.generate_node_prompt.return_value = "Test prompt"
+
+        node_data = {
+            "situation": "Test situation",
+            "choices": [
+                {"text": "Choice 1", "next": None},
+                {"text": "Choice 2", "next": None},
+            ],
+        }
+        self.mock_client.generate_content.return_value = json.dumps(node_data)
+
+        # Test
+        result = self.generator.generate_node(
+            "Parent situation", "Choice text", {"param": 1}
+        )
+
+        # Verify
+        assert result == node_data
+        self.mock_prompt_gen.generate_node_prompt.assert_called_once_with(
+            "Parent situation", "Choice text", {"param": 1}
+        )
+        self.mock_client.generate_content.assert_called_once_with("Test prompt")
+
+    def test_generate_node_wrapped_json(self):
+        """Test node generation with JSON wrapped in text."""
+        self.mock_prompt_gen.generate_node_prompt.return_value = "Test prompt"
+
+        node_data = {
+            "situation": "Test situation",
+            "choices": [
+                {"text": "Choice 1", "next": None},
+                {"text": "Choice 2", "next": None},
+            ],
+        }
+        wrapped_content = f"Here's the JSON:\n{json.dumps(node_data)}\nThat's it!"
+        self.mock_client.generate_content.return_value = wrapped_content
+
+        result = self.generator.generate_node(
+            "Parent situation", "Choice text", {"param": 1}
+        )
+
+        assert result == node_data
+
+    def test_generate_node_invalid_json_retry(self):
+        """Test node generation with invalid JSON and retry."""
+        self.mock_prompt_gen.generate_node_prompt.return_value = "Test prompt"
+
+        # First call returns invalid JSON, second call succeeds
+        node_data = {
+            "situation": "Test situation",
+            "choices": [
+                {"text": "Choice 1", "next": None},
+                {"text": "Choice 2", "next": None},
+            ],
+        }
+        self.mock_client.generate_content.side_effect = [
+            "invalid json",
+            json.dumps(node_data),
+        ]
+
+        result = self.generator.generate_node(
+            "Parent situation", "Choice text", {"param": 1}, max_retries=2
+        )
+
+        assert result == node_data
+        assert self.mock_client.generate_content.call_count == 2
+
+    def test_generate_node_max_retries_exceeded(self):
+        """Test node generation when max retries are exceeded."""
+        self.mock_prompt_gen.generate_node_prompt.return_value = "Test prompt"
+        self.mock_client.generate_content.return_value = "invalid json"
+
+        result = self.generator.generate_node(
+            "Parent situation", "Choice text", {"param": 1}, max_retries=2
+        )
+
+        assert result is None
+        assert self.mock_client.generate_content.call_count == 2
+
+    def test_generate_node_llm_error(self):
+        """Test node generation with LLM error."""
+        self.mock_prompt_gen.generate_node_prompt.return_value = "Test prompt"
+        self.mock_client.generate_content.side_effect = LLMError("Connection failed")
+
+        result = self.generator.generate_node(
+            "Parent situation", "Choice text", {"param": 1}, max_retries=1
+        )
+
+        assert result is None
+
+    def test_generate_node_unexpected_error(self):
+        """Test node generation with unexpected error."""
+        self.mock_prompt_gen.generate_node_prompt.return_value = "Test prompt"
+        self.mock_client.generate_content.side_effect = Exception("Unexpected error")
+
+        result = self.generator.generate_node(
+            "Parent situation", "Choice text", {"param": 1}, max_retries=1
+        )
+
+        assert result is None
