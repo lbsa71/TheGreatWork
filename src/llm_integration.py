@@ -163,7 +163,7 @@ class NodeGenerator:
         prompt = self.prompt_generator.generate_node_prompt(
             parent_situation, choice_text, params
         )
-        
+
         # Debug: Log the prompt being sent
         logger.info(f"Generated prompt:\n{prompt}")
 
@@ -172,7 +172,7 @@ class NodeGenerator:
                 logger.info(f"Generating node (attempt {attempt + 1}/{max_retries})")
 
                 content = self.llm_client.generate_content(prompt)
-                
+
                 # Debug: Log the raw content
                 logger.info(f"Raw generated content:\n{content}")
 

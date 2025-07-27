@@ -54,7 +54,9 @@ def setup_logging(verbose: bool = False) -> None:
 class DialogueAutofiller:
     """Main class for autofilling dialogue trees."""
 
-    def __init__(self, tree_file: Path, model: str = "llama3", max_nodes: Optional[int] = None):
+    def __init__(
+        self, tree_file: Path, model: str = "llama3", max_nodes: Optional[int] = None
+    ):
         self.tree_manager = DialogueTreeManager(tree_file)
         self.llm_client = OllamaClient(model)
         self.node_generator = NodeGenerator(self.llm_client)
@@ -104,8 +106,13 @@ class DialogueAutofiller:
                     break
 
                 # Check if we've reached the max_nodes limit
-                if self.max_nodes is not None and self.nodes_generated >= self.max_nodes:
-                    logger.info(f"Reached maximum node limit ({self.max_nodes}). Stopping generation.")
+                if (
+                    self.max_nodes is not None
+                    and self.nodes_generated >= self.max_nodes
+                ):
+                    logger.info(
+                        f"Reached maximum node limit ({self.max_nodes}). Stopping generation."
+                    )
                     break
 
                 logger.info(f"Processing null node: {null_node_id}")
