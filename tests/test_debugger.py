@@ -19,7 +19,7 @@ class TestKeyboardInput:
     """Test the KeyboardInput class."""
     
     @patch('debugger.WINDOWS', True)
-    def test_context_manager(self, mock_windows):
+    def test_context_manager(self):
         """Test that KeyboardInput can be used as a context manager."""
         # Test with Windows mode to avoid termios issues
         with KeyboardInput() as kb:
