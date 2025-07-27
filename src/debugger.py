@@ -12,7 +12,7 @@ from typing import Optional, Dict, Any, List
 
 # Import platform-specific modules for keyboard input
 try:
-    import msvcrt  # Windows
+    import msvcrt  # type: ignore # Windows
 
     WINDOWS = True
 except ImportError:
@@ -46,7 +46,7 @@ class KeyboardInput:
     def get_char(self) -> str:
         """Get a single character from stdin without requiring Enter."""
         if WINDOWS:
-            return msvcrt.getch().decode("utf-8")
+            return msvcrt.getch().decode("utf-8")  # type: ignore
         else:
             return sys.stdin.read(1)
 
