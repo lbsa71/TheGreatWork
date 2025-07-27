@@ -40,7 +40,7 @@ scripts\setup.ps1
 
 ### Option 2: Manual Setup
 
-1. **Install dependencies:**
+1. **Install dependencies (includes development tools):**
    ```bash
    pip install -r requirements.txt
    ```
@@ -163,9 +163,7 @@ pytest tests/ --cov=src --cov-report=html
 ### Code Quality
 
 ```bash
-# Install quality tools
-pip install black flake8 mypy isort
-
+# Development tools are already installed via requirements.txt
 # Format code
 black src/ tests/ autofill_dialogue.py
 
@@ -175,8 +173,8 @@ flake8 src/ tests/ autofill_dialogue.py
 # Type checking
 mypy src/ --ignore-missing-imports
 
-# Sort imports
-isort src/ tests/ autofill_dialogue.py
+# Run tests
+pytest tests/ -v
 ```
 
 ### Project Structure

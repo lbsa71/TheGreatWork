@@ -38,13 +38,9 @@ Write-Host "Activating virtual environment..." -ForegroundColor Yellow
 Write-Host "Upgrading pip..." -ForegroundColor Yellow
 python -m pip install --upgrade pip
 
-# Install dependencies
+# Install dependencies (including development tools)
 Write-Host "Installing Python dependencies..." -ForegroundColor Yellow
 pip install -r requirements.txt
-
-# Install development dependencies for testing
-Write-Host "Installing development dependencies..." -ForegroundColor Yellow
-pip install pytest pytest-cov pytest-mock black flake8 mypy
 
 # Check if Ollama is installed
 try {
