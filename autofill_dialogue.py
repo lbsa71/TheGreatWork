@@ -188,6 +188,8 @@ class DialogueAutofiller:
             choice_text=choice_text,
             params=tree.params,
             dialogue_history=dialogue_history,
+            rules=tree.rules,
+            scene=tree.scene,
         )
 
         if generated_node is None:
@@ -216,6 +218,19 @@ class DialogueAutofiller:
 def create_sample_tree(file_path: Path) -> None:
     """Create a sample dialogue tree file."""
     sample_tree = {
+        "rules": {
+            "language": "English",
+            "tone": "dramatic and serious",
+            "voice": "third person narrative",
+            "style": "medieval fantasy with political intrigue"
+        },
+        "scene": {
+            "setting": "A medieval kingdom in turmoil",
+            "time_period": "Medieval era, similar to 12th century Europe",
+            "location": "The royal castle and court",
+            "atmosphere": "Tense and uncertain following the king's sudden death",
+            "key_elements": "Political maneuvering, loyalty conflicts, succession crisis"
+        },
         "nodes": {
             "start": {
                 "situation": "The king is dead.",

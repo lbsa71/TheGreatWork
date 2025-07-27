@@ -100,6 +100,19 @@ The dialogue tree JSON file should have this structure:
 
 ```json
 {
+  "rules": {
+    "language": "English",
+    "tone": "dramatic and serious",
+    "voice": "third person narrative",
+    "style": "medieval fantasy with political intrigue"
+  },
+  "scene": {
+    "setting": "A medieval kingdom in turmoil",
+    "time_period": "Medieval era",
+    "location": "The royal castle and court",
+    "atmosphere": "Tense and uncertain",
+    "key_elements": "Political maneuvering, loyalty conflicts"
+  },
   "nodes": {
     "start": {
       "situation": "The king is dead.",
@@ -118,6 +131,19 @@ The dialogue tree JSON file should have this structure:
 }
 ```
 
+### Fields
+
+- **rules** *(optional)*: Stylistic rules for content generation
+  - **language**: The language to use (e.g., "English", "French")
+  - **tone**: The overall tone (e.g., "dramatic and serious", "lighthearted", "mysterious")
+  - **voice**: The narrative voice (e.g., "third person narrative", "first person")
+  - **style**: The literary/genre style (e.g., "medieval fantasy", "modern thriller")
+- **scene** *(optional)*: World-building context for content generation
+  - **setting**: The general setting (e.g., "A medieval kingdom")
+  - **time_period**: When the story takes place (e.g., "Medieval era", "1920s")
+  - **location**: Specific locations (e.g., "The royal castle")
+  - **atmosphere**: The mood/atmosphere (e.g., "Tense and uncertain")
+  - **key_elements**: Important story elements (e.g., "Political intrigue, succession crisis")
 - **nodes**: Dictionary of dialogue nodes
   - Complete nodes have `situation` and `choices` fields
   - Incomplete nodes are marked as `null`
