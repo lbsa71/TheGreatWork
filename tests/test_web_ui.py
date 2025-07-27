@@ -95,6 +95,7 @@ class TestDialogueWebUI(unittest.TestCase):
             '/',
             '/api/tree',
             '/api/node/<node_id>',
+            '/api/history/<node_id>',
             '/api/tree/structure',
             '/api/generate/<node_id>',
             '/api/save'
@@ -199,6 +200,45 @@ class TestDialogueWebUI(unittest.TestCase):
         # Test non-existent node
         context = web_ui._find_parent_context('nonexistent')
         self.assertIsNone(context)
+
+    @patch('src.web_ui.OllamaClient')
+    @patch('src.web_ui.NodeGenerator')
+    def test_get_history_endpoint(self, mock_node_gen, mock_ollama):
+        """Test the /api/history/<node_id> endpoint."""
+        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+        
+        with web_ui.app.test_client() as client:
+            # Test history for root node (should be empty)
+            response = client.get('/api/history/start')
+            self.assertEqual(response.status_code, 200)
+            
+            data = response.get_json()
+            self.assertIn('history', data)
+            self.assertIn('target_node', data)
+            self.assertEqual(data['target_node'], 'start')
+            self.assertEqual(len(data['history']), 0)  # Root should have no history
+            
+            # Test history for child node
+            response = client.get('/api/history/node1')
+            self.assertEqual(response.status_code, 200)
+            
+            data = response.get_json()
+            self.assertEqual(data['target_node'], 'node1')
+            self.assertEqual(len(data['history']), 1)  # Should have one step
+            
+            # Check the history step structure
+            step = data['history'][0]
+            self.assertIn('node_id', step)
+            self.assertIn('situation', step)
+            self.assertIn('choice_text', step)
+            self.assertIn('choice_effects', step)
+            self.assertEqual(step['node_id'], 'start')
+            self.assertEqual(step['situation'], 'The king is dead.')
+            self.assertEqual(step['choice_text'], 'Mourn publicly')
+            
+            # Test non-existent node
+            response = client.get('/api/history/nonexistent')
+            self.assertEqual(response.status_code, 404)
 
 
 if __name__ == '__main__':

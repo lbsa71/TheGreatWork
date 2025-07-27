@@ -141,6 +141,9 @@ class DialogueTreeApp {
             this.currentNodeId = nodeId;
             document.getElementById('currentNodeId').textContent = nodeId;
             
+            // Load and render situation history
+            await this.loadAndRenderSituationHistory(nodeId);
+            
             // Update UI
             this.renderCurrentSituation(nodeData);
             this.renderChoices(nodeData.choices);
@@ -153,6 +156,87 @@ class DialogueTreeApp {
             console.error('Error navigating to node:', error);
             this.showError(`Failed to navigate to node: ${nodeId}`);
         }
+    }
+    
+    async loadAndRenderSituationHistory(nodeId) {
+        try {
+            const response = await fetch(`/api/history/${nodeId}`);
+            if (!response.ok) {
+                throw new Error('Failed to load history');
+            }
+            
+            const historyData = await response.json();
+            this.renderSituationHistory(historyData.history);
+            
+        } catch (error) {
+            console.error('Error loading situation history:', error);
+            // Hide history container if we can't load it
+            document.getElementById('situationHistoryContainer').style.display = 'none';
+        }
+    }
+    
+    renderSituationHistory(historySteps) {
+        const container = document.getElementById('situationHistory');
+        const historyContainer = document.getElementById('situationHistoryContainer');
+        
+        // If no history, hide the container
+        if (!historySteps || historySteps.length === 0) {
+            historyContainer.style.display = 'none';
+            return;
+        }
+        
+        // Show the container and populate it
+        historyContainer.style.display = 'block';
+        container.innerHTML = '';
+        
+        historySteps.forEach((step, index) => {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'history-step mb-3';
+            
+            const stepNumber = index + 1;
+            let stepHtml = `
+                <div class="d-flex align-items-start">
+                    <div class="step-number me-3">
+                        <span class="badge bg-primary">${stepNumber}</span>
+                    </div>
+                    <div class="step-content flex-grow-1">
+                        <div class="step-situation mb-2">
+                            <strong>Situation:</strong> ${step.situation}
+                        </div>
+                        <div class="step-choice">
+                            <strong>Choice made:</strong> 
+                            <span class="choice-highlight">${step.choice_text}</span>
+            `;
+            
+            // Add effects if present
+            if (step.choice_effects && Object.keys(step.choice_effects).length > 0) {
+                const effectsText = Object.entries(step.choice_effects)
+                    .map(([key, value]) => `${key}: ${value > 0 ? '+' : ''}${value}`)
+                    .join(', ');
+                stepHtml += `
+                    <div class="step-effects mt-1">
+                        <small class="text-muted">Effects: ${effectsText}</small>
+                    </div>
+                `;
+            }
+            
+            stepHtml += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            stepDiv.innerHTML = stepHtml;
+            container.appendChild(stepDiv);
+            
+            // Add arrow connector except for the last step
+            if (index < historySteps.length - 1) {
+                const arrow = document.createElement('div');
+                arrow.className = 'history-arrow text-center my-2';
+                arrow.innerHTML = '<i class="bi bi-arrow-down text-muted"></i>';
+                container.appendChild(arrow);
+            }
+        });
     }
     
     renderCurrentSituation(nodeData) {

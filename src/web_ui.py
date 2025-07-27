@@ -81,6 +81,52 @@ class DialogueWebUI:
                 'choices': node.get('choices', [])
             })
         
+        @self.app.route('/api/history/<node_id>')
+        def get_dialogue_history(node_id: str):
+            """Get the dialogue history leading to a specific node."""
+            if node_id not in self.tree.nodes:
+                return jsonify({'error': 'Node not found'}), 404
+            
+            # Build structured dialogue history
+            history_steps = []
+            current_node_id = node_id
+            
+            # Backtrack through the tree to build history
+            while current_node_id:
+                parent_info = self.tree.find_parent_and_choice(current_node_id)
+                if parent_info is None:
+                    # We've reached the root or a disconnected node
+                    break
+                
+                parent_id, choice = parent_info
+                parent_node = self.tree.get_node(parent_id)
+                
+                if parent_node is None:
+                    break
+                
+                # Add this step to the history
+                situation = parent_node.get("situation", "")
+                choice_text = choice.get("text", "")
+                choice_effects = choice.get("effects", {})
+                
+                history_steps.append({
+                    'node_id': parent_id,
+                    'situation': situation,
+                    'choice_text': choice_text,
+                    'choice_effects': choice_effects
+                })
+                
+                # Move to the parent for next iteration
+                current_node_id = parent_id
+            
+            # Reverse to get chronological order (root to target)
+            history_steps.reverse()
+            
+            return jsonify({
+                'history': history_steps,
+                'target_node': node_id
+            })
+        
         @self.app.route('/api/tree/structure')
         def get_tree_structure():
             """Get the tree structure for navigation."""
