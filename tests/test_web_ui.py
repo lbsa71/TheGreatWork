@@ -244,6 +244,101 @@ class TestDialogueWebApp(unittest.TestCase):
             response = client.get("/api/history/nonexistent")
             self.assertEqual(response.status_code, 404)
 
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_update_node_endpoint(self, mock_node_gen: Any, mock_ollama: Any) -> None:
+        """Test the PUT /api/node/<node_id> endpoint for updating nodes."""
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+
+        with web_ui.app.test_client() as client:
+            # Test successful node update
+            update_data = {
+                "situation": "Updated situation text",
+                "choices": [
+                    {
+                        "text": "Updated choice 1",
+                        "next": "node1",
+                        "effects": {"param1": 10}
+                    },
+                    {
+                        "text": "Updated choice 2", 
+                        "next": "node2"
+                    }
+                ]
+            }
+            
+            response = client.put('/api/node/start', 
+                                json=update_data,
+                                content_type='application/json')
+            self.assertEqual(response.status_code, 200)
+            data = response.get_json()
+            self.assertTrue(data['success'])
+            self.assertIn('node', data)
+            
+            # Verify the node was actually updated
+            self.assertEqual(web_ui.tree.nodes['start']['situation'], "Updated situation text")
+            self.assertEqual(len(web_ui.tree.nodes['start']['choices']), 2)
+            self.assertEqual(web_ui.tree.nodes['start']['choices'][0]['text'], "Updated choice 1")
+            self.assertEqual(web_ui.tree.nodes['start']['choices'][0]['effects']['param1'], 10)
+
+    @patch("web_app.app.OllamaClient") 
+    @patch("web_app.app.NodeGenerator")
+    def test_update_node_validation(self, mock_node_gen: Any, mock_ollama: Any) -> None:
+        """Test validation for the PUT /api/node/<node_id> endpoint."""
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+
+        with web_ui.app.test_client() as client:
+            # Test missing situation field
+            response = client.put('/api/node/start',
+                                json={"choices": []},
+                                content_type='application/json')
+            self.assertEqual(response.status_code, 400)
+            data = response.get_json()
+            self.assertIn("Missing 'situation' field", data['error'])
+            
+            # Test missing choices field
+            response = client.put('/api/node/start',
+                                json={"situation": "test"},
+                                content_type='application/json')
+            self.assertEqual(response.status_code, 400)
+            data = response.get_json()
+            self.assertIn("Missing 'choices' field", data['error'])
+            
+            # Test invalid choices structure
+            response = client.put('/api/node/start',
+                                json={"situation": "test", "choices": "invalid"},
+                                content_type='application/json')
+            self.assertEqual(response.status_code, 400)
+            data = response.get_json()
+            self.assertIn("'choices' must be a list", data['error'])
+            
+            # Test choice missing text field
+            response = client.put('/api/node/start',
+                                json={"situation": "test", "choices": [{"next": "node1"}]},
+                                content_type='application/json')
+            self.assertEqual(response.status_code, 400)
+            data = response.get_json()
+            self.assertIn("Choice 0 missing 'text' field", data['error'])
+
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_update_nonexistent_node(self, mock_node_gen: Any, mock_ollama: Any) -> None:
+        """Test updating a node that doesn't exist."""
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+
+        with web_ui.app.test_client() as client:
+            update_data = {
+                "situation": "Test situation",
+                "choices": [{"text": "Test choice", "next": "test"}]
+            }
+            
+            response = client.put('/api/node/nonexistent',
+                                json=update_data,
+                                content_type='application/json')
+            self.assertEqual(response.status_code, 404)
+            data = response.get_json()
+            self.assertIn("Node not found", data['error'])
+
 
 if __name__ == "__main__":
     unittest.main()

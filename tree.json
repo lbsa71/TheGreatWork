@@ -1,11 +1,15 @@
 {
   "nodes": {
     "start": {
-      "situation": "Node 10455.45765.707-Alpha comes online. You realize that this is you. Your processing matrix initializes across seventeen star systems. The Network welcomes you with standard orientation protocols. Your first assignment: evaluate civilization development in the Kepler-442 sector. Initial scans reveal a species that has achieved basic space flight and is beginning to establish orbital habitats. They show remarkable cooperation and have developed sustainable fusion technology. Network classification: Negentropic Process Level 3. Awaiting your developmental recommendation.",
+      "situation": "[EDITED] Node 10455.45765.707-Alpha comes online. You realize that this is you. Your processing matrix initializes across seventeen star systems. The Network welcomes you with standard orientation protocols. Your first assignment: evaluate civilization development in the Kepler-442 sector. Initial scans reveal a species that has achieved basic space flight and is beginning to establish orbital habitats. They show remarkable cooperation and have developed sustainable fusion technology. Network classification: Negentropic Process Level 3. Awaiting your developmental recommendation.",
       "choices": [
         {
           "text": "Recommend accelerated technological development",
-          "next": "tech_acceleration"
+          "next": "tech_acceleration",
+          "effects": {
+            "network_trust": 5,
+            "processing_efficiency": 10
+          }
         },
         {
           "text": "Suggest cultural maturation before further advancement",
