@@ -228,6 +228,49 @@ class DialogueWebApp:
                 logger.error(f"Error generating node {node_id}: {e}")
                 return jsonify({"error": str(e)}), 500
 
+        @self.app.route("/api/node/<node_id>", methods=["PUT"])
+        def update_node(node_id: str) -> Any:
+            """Update a specific node."""
+            if node_id not in self.tree.nodes:
+                return jsonify({"error": "Node not found"}), 404
+
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({"error": "No data provided"}), 400
+
+                # Validate the node data structure
+                if "situation" not in data:
+                    return jsonify({"error": "Missing 'situation' field"}), 400
+                
+                if "choices" not in data:
+                    return jsonify({"error": "Missing 'choices' field"}), 400
+
+                # Validate choices structure
+                if not isinstance(data["choices"], list):
+                    return jsonify({"error": "'choices' must be a list"}), 400
+
+                for i, choice in enumerate(data["choices"]):
+                    if not isinstance(choice, dict):
+                        return jsonify({"error": f"Choice {i} must be an object"}), 400
+                    if "text" not in choice:
+                        return jsonify({"error": f"Choice {i} missing 'text' field"}), 400
+
+                # Update the node
+                self.tree.nodes[node_id] = {
+                    "situation": data["situation"],
+                    "choices": data["choices"]
+                }
+
+                # Save the updated tree
+                self.tree_manager.save_tree(self.tree)
+
+                return jsonify({"success": True, "node": self.tree.nodes[node_id]})
+
+            except Exception as e:
+                logger.error(f"Error updating node {node_id}: {e}")
+                return jsonify({"error": str(e)}), 500
+
         @self.app.route("/api/save", methods=["POST"])
         def save_tree() -> Any:
             """Save the current tree to file."""

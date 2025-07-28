@@ -30,9 +30,24 @@ class DialogueTreeApp {
             this.saveTree();
         });
         
+        // Edit node button
+        document.getElementById('editNodeBtn').addEventListener('click', () => {
+            this.showEditNodeModal();
+        });
+        
         // AI generation modal
         document.getElementById('generateAIContent').addEventListener('click', () => {
             this.generateAIContent();
+        });
+        
+        // Save node changes button
+        document.getElementById('saveNodeChanges').addEventListener('click', () => {
+            this.saveNodeChanges();
+        });
+        
+        // Add choice button
+        document.getElementById('addChoiceBtn').addEventListener('click', () => {
+            this.addChoiceToEditor();
         });
         
         // Modal close buttons
@@ -140,6 +155,14 @@ class DialogueTreeApp {
             // Update current node
             this.currentNodeId = nodeId;
             document.getElementById('currentNodeId').textContent = nodeId;
+            
+            // Show/hide edit button for complete nodes only
+            const editBtn = document.getElementById('editNodeBtn');
+            if (this.treeStructure[nodeId] && !this.treeStructure[nodeId].is_null) {
+                editBtn.style.display = 'inline-block';
+            } else {
+                editBtn.style.display = 'none';
+            }
             
             // Load and render situation history
             await this.loadAndRenderSituationHistory(nodeId);
@@ -486,6 +509,163 @@ class DialogueTreeApp {
                 toast.parentNode.removeChild(toast);
             }
         }, timeout);
+    }
+    
+    async showEditNodeModal() {
+        if (!this.currentNodeId) {
+            this.showError('No node selected for editing');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/node/${this.currentNodeId}`);
+            if (!response.ok) {
+                throw new Error('Failed to load node for editing');
+            }
+            
+            const nodeData = await response.json();
+            
+            // Populate the edit form
+            document.getElementById('editSituation').value = nodeData.situation || '';
+            
+            // Clear and populate choices
+            const choicesContainer = document.getElementById('editChoices');
+            choicesContainer.innerHTML = '';
+            
+            if (nodeData.choices && nodeData.choices.length > 0) {
+                nodeData.choices.forEach((choice, index) => {
+                    this.addChoiceToEditor(choice, index);
+                });
+            } else {
+                // Add one empty choice if none exist
+                this.addChoiceToEditor();
+            }
+            
+            // Show the modal
+            showModal('editNodeModal');
+            
+        } catch (error) {
+            console.error('Error loading node for editing:', error);
+            this.showError('Failed to load node for editing');
+        }
+    }
+    
+    addChoiceToEditor(choiceData = null, index = null) {
+        const choicesContainer = document.getElementById('editChoices');
+        const choiceIndex = index !== null ? index : choicesContainer.children.length;
+        
+        const choiceDiv = document.createElement('div');
+        choiceDiv.className = 'edit-choice-item';
+        choiceDiv.dataset.choiceIndex = choiceIndex;
+        
+        choiceDiv.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label mb-0">Choice ${choiceIndex + 1}</label>
+                <button type="button" class="btn btn-sm remove-choice-btn" onclick="this.closest('.edit-choice-item').remove()">
+                    <i class="bi bi-trash"></i> Remove
+                </button>
+            </div>
+            <div class="mb-2">
+                <input type="text" class="form-control choice-text" placeholder="Choice text..." value="${choiceData?.text || ''}" />
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Next Node ID</label>
+                    <input type="text" class="form-control choice-next" placeholder="next_node_id" value="${choiceData?.next || ''}" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Effects (JSON)</label>
+                    <input type="text" class="form-control choice-effects" placeholder='{"param": 5}' value="${choiceData?.effects ? JSON.stringify(choiceData.effects) : ''}" />
+                </div>
+            </div>
+        `;
+        
+        choicesContainer.appendChild(choiceDiv);
+    }
+    
+    async saveNodeChanges() {
+        if (!this.currentNodeId) {
+            this.showError('No node selected for saving');
+            return;
+        }
+        
+        const statusDiv = document.getElementById('editStatus');
+        const saveBtn = document.getElementById('saveNodeChanges');
+        
+        // Show loading state
+        statusDiv.classList.remove('d-none');
+        saveBtn.disabled = true;
+        
+        try {
+            // Collect form data
+            const situation = document.getElementById('editSituation').value;
+            const choiceItems = document.querySelectorAll('.edit-choice-item');
+            const choices = [];
+            
+            choiceItems.forEach((item) => {
+                const text = item.querySelector('.choice-text').value;
+                const next = item.querySelector('.choice-next').value;
+                const effectsStr = item.querySelector('.choice-effects').value;
+                
+                if (text.trim()) {
+                    const choice = { text: text.trim() };
+                    
+                    if (next.trim()) {
+                        choice.next = next.trim();
+                    }
+                    
+                    if (effectsStr.trim()) {
+                        try {
+                            choice.effects = JSON.parse(effectsStr);
+                        } catch (e) {
+                            throw new Error(`Invalid JSON in choice effects: ${effectsStr}`);
+                        }
+                    }
+                    
+                    choices.push(choice);
+                }
+            });
+            
+            if (!situation.trim()) {
+                throw new Error('Situation text is required');
+            }
+            
+            if (choices.length === 0) {
+                throw new Error('At least one choice is required');
+            }
+            
+            // Send update request
+            const response = await fetch(`/api/node/${this.currentNodeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    situation: situation.trim(),
+                    choices: choices
+                })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to save node');
+            }
+            
+            // Success
+            this.showSuccess('Node updated successfully!');
+            hideModal('editNodeModal');
+            
+            // Refresh the UI
+            await this.refreshTree();
+            this.navigateToNode(this.currentNodeId);
+            
+        } catch (error) {
+            console.error('Error saving node changes:', error);
+            this.showError(`Failed to save changes: ${error.message}`);
+        } finally {
+            statusDiv.classList.add('d-none');
+            saveBtn.disabled = false;
+        }
     }
 }
 
