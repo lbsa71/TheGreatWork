@@ -1,0 +1,5 @@
+# Web application dependencies
+flask>=2.3.0
+
+# Core dependencies (install from parent directory)
+-r ../requirements.txt 

@@ -135,6 +135,243 @@ class DialogueTree:
 
         return "\n".join(history_lines)
 
+    def validate_and_fix_tree(self) -> None:
+        """
+        Validate and fix the dialogue tree structure.
+
+        This method performs the following validations and fixes:
+        1. All referenced nodes exist (create null nodes if missing)
+        2. All required fields are present on all nodes (convert to null if invalid)
+        3. No extra fields are present on nodes (remove extra fields)
+        4. All nodes occur in at least one 'next' reference (remove orphaned nodes)
+        5. All 'effect' params exist in root level 'params' collection (add if missing)
+        """
+        logger.info("Starting dialogue tree validation and fixing")
+
+        # Step 1: Ensure all referenced nodes exist
+        self._ensure_referenced_nodes_exist()
+
+        # Step 2: Fix node structure and remove extra fields
+        self._fix_node_structure()
+
+        # Step 3: Remove orphaned nodes (after structure fixing)
+        self._remove_orphaned_nodes()
+
+        # Step 4: Extract and add missing effect parameters
+        self._extract_and_add_missing_params()
+
+        logger.info("Dialogue tree validation and fixing completed")
+
+    def _fix_node_structure(self) -> None:
+        """Fix node structure and remove extra fields."""
+        nodes_to_nullify = []
+
+        for node_id, node_data in self.nodes.items():
+            if node_data is None:
+                continue
+
+            if not isinstance(node_data, dict):
+                nodes_to_nullify.append(node_id)
+                continue
+
+            # Check required fields
+            if "situation" not in node_data or not isinstance(
+                node_data["situation"], str
+            ):
+                nodes_to_nullify.append(node_id)
+                continue
+
+            if "choices" not in node_data or not isinstance(node_data["choices"], list):
+                nodes_to_nullify.append(node_id)
+                continue
+
+            # Validate choices structure
+            valid_choices = []
+            for choice in node_data["choices"]:
+                if not isinstance(choice, dict):
+                    continue
+                if "text" not in choice or not isinstance(choice["text"], str):
+                    continue
+
+                # Clean choice - only keep allowed fields
+                clean_choice: Dict[str, Any] = {"text": choice["text"]}
+
+                # Add next if present
+                if "next" in choice:
+                    clean_choice["next"] = choice["next"]
+
+                # Add effects if present and valid
+                if "effects" in choice and isinstance(choice["effects"], dict):
+                    clean_choice["effects"] = choice["effects"]
+
+                valid_choices.append(clean_choice)
+
+            # Check if we have valid choices (allow empty choices for some nodes)
+            # Don't nullify nodes just because they have no choices
+
+            # Clean node - only keep allowed fields
+            clean_node: Dict[str, Any] = {
+                "situation": node_data["situation"],
+                "choices": valid_choices,
+            }
+
+            self.nodes[node_id] = clean_node
+
+        # Nullify invalid nodes
+        for node_id in nodes_to_nullify:
+            logger.warning(f"Converting invalid node '{node_id}' to null")
+            self.nodes[node_id] = None
+
+    def _ensure_referenced_nodes_exist(self) -> None:
+        """Ensure all referenced nodes exist, creating null nodes if missing."""
+        referenced_nodes = set()
+
+        # Collect all referenced node IDs
+        for node_id, node_data in self.nodes.items():
+            if node_data is None or not isinstance(node_data, dict):
+                continue
+
+            choices = node_data.get("choices", [])
+            for choice in choices:
+                if isinstance(choice, dict) and "next" in choice:
+                    next_node = choice["next"]
+                    if next_node is not None:  # Skip null next values
+                        referenced_nodes.add(next_node)
+
+        # Create missing nodes as null
+        for node_id in referenced_nodes:
+            if node_id not in self.nodes:
+                logger.info(f"Creating missing referenced node '{node_id}' as null")
+                self.nodes[node_id] = None
+
+    def _remove_orphaned_nodes(self) -> None:
+        """Remove nodes that are not referenced by any choice and are not meaningful roots."""
+        referenced_nodes = set()
+
+        # Collect all referenced node IDs from choices
+        for node_id, node_data in self.nodes.items():
+            if node_data is None or not isinstance(node_data, dict):
+                continue
+
+            choices = node_data.get("choices", [])
+            for choice in choices:
+                if isinstance(choice, dict) and "next" in choice:
+                    next_node = choice["next"]
+                    if next_node is not None:
+                        referenced_nodes.add(next_node)
+
+        # Find unreferenced nodes
+        all_nodes = set(self.nodes.keys())
+        unreferenced_nodes = all_nodes - referenced_nodes
+
+        # Remove unreferenced nodes that are truly orphaned
+        # Keep unreferenced nodes that:
+        # 1. Are called 'start' (conventional root)
+        # 2. Have valid content and choices (potential alternate entry points)
+        orphaned_nodes = set()
+        for node_id in unreferenced_nodes:
+            node_data = self.nodes[node_id]
+
+            # Always keep 'start' node
+            if node_id == "start":
+                continue
+
+            # Keep null nodes that might be placeholders
+            if node_data is None:
+                orphaned_nodes.add(node_id)
+                continue
+
+            # Keep valid nodes with meaningful choices (including ones that end the dialogue)
+            if isinstance(node_data, dict) and "choices" in node_data:
+                choices = node_data.get("choices", [])
+                has_any_choices = len(choices) > 0
+
+                # If it has any choices at all (even ending ones), it might be a legitimate entry point
+                if has_any_choices:
+                    continue
+
+            # This node seems truly orphaned
+            orphaned_nodes.add(node_id)
+
+        # Remove the orphaned nodes
+        for node_id in orphaned_nodes:
+            logger.info(f"Removing orphaned node '{node_id}'")
+            del self.nodes[node_id]
+
+        # Collect all referenced node IDs from choices
+        for node_id, node_data in self.nodes.items():
+            if node_data is None or not isinstance(node_data, dict):
+                continue
+
+            choices = node_data.get("choices", [])
+            for choice in choices:
+                if isinstance(choice, dict) and "next" in choice:
+                    next_node = choice["next"]
+                    if next_node is not None:
+                        referenced_nodes.add(next_node)
+
+        # Find unreferenced nodes
+        all_nodes = set(self.nodes.keys())
+        unreferenced_nodes = all_nodes - referenced_nodes
+
+        # Remove unreferenced nodes that are truly orphaned
+        # Keep unreferenced nodes that:
+        # 1. Are called 'start' (conventional root)
+        # 2. Have valid content and choices (potential alternate entry points)
+        orphaned_nodes = set()
+        for node_id in unreferenced_nodes:
+            node_data = self.nodes[node_id]
+
+            # Always keep 'start' node
+            if node_id == "start":
+                continue
+
+            # Keep null nodes that might be placeholders
+            if node_data is None:
+                orphaned_nodes.add(node_id)
+                continue
+
+            # Keep valid nodes with meaningful choices (including ones that end the dialogue)
+            if isinstance(node_data, dict) and "choices" in node_data:
+                choices = node_data.get("choices", [])
+                has_any_choices = len(choices) > 0
+
+                # If it has any choices at all (even ending ones), it might be a legitimate entry point
+                if has_any_choices:
+                    continue
+
+            # This node seems truly orphaned
+            orphaned_nodes.add(node_id)
+
+        # Remove the orphaned nodes
+        for node_id in orphaned_nodes:
+            logger.info(f"Removing orphaned node '{node_id}'")
+            del self.nodes[node_id]
+
+    def _extract_and_add_missing_params(self) -> None:
+        """Extract effect parameters from choices and add missing ones to root params."""
+        all_effect_params: set[str] = set()
+
+        # Collect all effect parameter names
+        for node_id, node_data in self.nodes.items():
+            if node_data is None or not isinstance(node_data, dict):
+                continue
+
+            choices = node_data.get("choices", [])
+            for choice in choices:
+                if isinstance(choice, dict) and "effects" in choice:
+                    effects = choice["effects"]
+                    if isinstance(effects, dict):
+                        all_effect_params.update(effects.keys())
+
+        # Add missing parameters to root params with default value 0
+        for param_name in all_effect_params:
+            if param_name not in self.params:
+                logger.info(
+                    f"Adding missing parameter '{param_name}' to root params with default value 0"
+                )
+                self.params[param_name] = 0
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the tree to a dictionary representation."""
         result = {"nodes": self.nodes, "params": self.params}
@@ -175,6 +412,10 @@ class DialogueTreeManager:
 
             self.tree = DialogueTree.from_dict(data)
             logger.info(f"Loaded dialogue tree from {self.file_path}")
+
+            # Validate and fix the tree structure
+            self.tree.validate_and_fix_tree()
+
             return self.tree
 
         except FileNotFoundError:
@@ -189,6 +430,9 @@ class DialogueTreeManager:
         tree_to_save = tree or self.tree
         if tree_to_save is None:
             raise DialogueTreeError("No tree to save")
+
+        # Validate and fix the tree before saving
+        tree_to_save.validate_and_fix_tree()
 
         try:
             with open(self.file_path, "w", encoding="utf-8") as f:

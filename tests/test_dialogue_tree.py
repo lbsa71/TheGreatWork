@@ -94,7 +94,7 @@ class TestDialogueTree:
         assert self.tree.rules == {}
         assert self.tree.scene == {}
 
-    def test_init_with_rules_and_scene(self):
+    def test_init_with_rules_and_scene(self) -> None:
         """Test initialization with rules and scene."""
         rules = {"tone": "dramatic", "voice": "third person"}
         scene = {"setting": "medieval kingdom", "atmosphere": "tense"}
@@ -153,7 +153,7 @@ class TestDialogueTree:
         expected = {"nodes": self.nodes, "params": self.params}
         assert result == expected
 
-    def test_to_dict_with_rules_and_scene(self):
+    def test_to_dict_with_rules_and_scene(self) -> None:
         """Test conversion to dictionary with rules and scene."""
         rules = {"tone": "dramatic"}
         scene = {"setting": "medieval kingdom"}
@@ -176,7 +176,7 @@ class TestDialogueTree:
         assert tree.rules == {}
         assert tree.scene == {}
 
-    def test_from_dict_with_rules_and_scene(self):
+    def test_from_dict_with_rules_and_scene(self) -> None:
         """Test creation from dictionary with rules and scene."""
         rules = {"tone": "dramatic"}
         scene = {"setting": "medieval kingdom"}

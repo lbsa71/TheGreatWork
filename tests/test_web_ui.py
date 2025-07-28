@@ -7,15 +7,16 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
-from src.web_ui import DialogueWebUI
+from web_app.app import DialogueWebApp
 
 
-class TestDialogueWebUI(unittest.TestCase):
-    """Test cases for DialogueWebUI class."""
+class TestDialogueWebApp(unittest.TestCase):
+    """Test cases for DialogueWebApp class."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test fixtures."""
         # Create a temporary tree file
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -59,15 +60,15 @@ class TestDialogueWebUI(unittest.TestCase):
         with open(self.tree_file, "w") as f:
             json.dump(self.sample_tree, f)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         """Clean up test fixtures."""
         self.temp_dir.cleanup()
 
-    @patch("src.web_ui.OllamaClient")
-    @patch("src.web_ui.NodeGenerator")
-    def test_init(self, mock_node_gen, mock_ollama):
-        """Test DialogueWebUI initialization."""
-        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_init(self, mock_node_gen: Any, mock_ollama: Any) -> None:
+        """Test DialogueWebApp initialization."""
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
 
         # Check that components were initialized
         self.assertEqual(web_ui.tree_file, self.tree_file)
@@ -80,11 +81,11 @@ class TestDialogueWebUI(unittest.TestCase):
         mock_ollama.assert_called_once_with(model="llama3")
         mock_node_gen.assert_called_once()
 
-    @patch("src.web_ui.OllamaClient")
-    @patch("src.web_ui.NodeGenerator")
-    def test_routes_exist(self, mock_node_gen, mock_ollama):
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_routes_exist(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test that all expected routes exist."""
-        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
 
         # Get all routes
         routes = [rule.rule for rule in web_ui.app.url_map.iter_rules()]
@@ -104,11 +105,11 @@ class TestDialogueWebUI(unittest.TestCase):
                 expected_route, routes, f"Route {expected_route} not found in {routes}"
             )
 
-    @patch("src.web_ui.OllamaClient")
-    @patch("src.web_ui.NodeGenerator")
-    def test_get_tree_endpoint(self, mock_node_gen, mock_ollama):
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_get_tree_endpoint(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the /api/tree endpoint."""
-        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
 
         with web_ui.app.test_client() as client:
             response = client.get("/api/tree")
@@ -124,11 +125,11 @@ class TestDialogueWebUI(unittest.TestCase):
             self.assertEqual(data["nodes"]["start"]["situation"], "The king is dead.")
             self.assertEqual(data["params"]["loyalty"], 45)
 
-    @patch("src.web_ui.OllamaClient")
-    @patch("src.web_ui.NodeGenerator")
-    def test_get_node_endpoint(self, mock_node_gen, mock_ollama):
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_get_node_endpoint(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the /api/node/<node_id> endpoint."""
-        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
 
         with web_ui.app.test_client() as client:
             # Test valid node
@@ -148,11 +149,13 @@ class TestDialogueWebUI(unittest.TestCase):
             response = client.get("/api/node/node2")
             self.assertEqual(response.status_code, 404)
 
-    @patch("src.web_ui.OllamaClient")
-    @patch("src.web_ui.NodeGenerator")
-    def test_get_tree_structure_endpoint(self, mock_node_gen, mock_ollama):
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_get_tree_structure_endpoint(
+        self, mock_node_gen: Any, mock_ollama: Any
+    ) -> None:
         """Test the /api/tree/structure endpoint."""
-        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
 
         with web_ui.app.test_client() as client:
             response = client.get("/api/tree/structure")
@@ -176,35 +179,37 @@ class TestDialogueWebUI(unittest.TestCase):
             self.assertTrue(null_node["is_null"])
             self.assertEqual(null_node["situation"], "Incomplete node")
 
-    @patch("src.web_ui.OllamaClient")
-    @patch("src.web_ui.NodeGenerator")
-    def test_find_parent_context(self, mock_node_gen, mock_ollama):
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_find_parent_context(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the _find_parent_context method."""
-        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
 
         # Test finding parent for node1
         context = web_ui._find_parent_context("node1")
         self.assertIsNotNone(context)
-        self.assertEqual(context["parent_node_id"], "start")
-        self.assertEqual(context["choice_text"], "Mourn publicly")
-        self.assertEqual(context["choice_index"], 0)
+        if context is not None:  # Type guard for mypy
+            self.assertEqual(context["parent_node_id"], "start")
+            self.assertEqual(context["choice_text"], "Mourn publicly")
+            self.assertEqual(context["choice_index"], 0)
 
         # Test finding parent for node2
         context = web_ui._find_parent_context("node2")
         self.assertIsNotNone(context)
-        self.assertEqual(context["parent_node_id"], "start")
-        self.assertEqual(context["choice_text"], "Seize the throne")
-        self.assertEqual(context["choice_index"], 1)
+        if context is not None:  # Type guard for mypy
+            self.assertEqual(context["parent_node_id"], "start")
+            self.assertEqual(context["choice_text"], "Seize the throne")
+            self.assertEqual(context["choice_index"], 1)
 
         # Test non-existent node
         context = web_ui._find_parent_context("nonexistent")
         self.assertIsNone(context)
 
-    @patch("src.web_ui.OllamaClient")
-    @patch("src.web_ui.NodeGenerator")
-    def test_get_history_endpoint(self, mock_node_gen, mock_ollama):
+    @patch("web_app.app.OllamaClient")
+    @patch("web_app.app.NodeGenerator")
+    def test_get_history_endpoint(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the /api/history/<node_id> endpoint."""
-        web_ui = DialogueWebUI(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
 
         with web_ui.app.test_client() as client:
             # Test history for root node (should be empty)
