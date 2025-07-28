@@ -1,7 +1,7 @@
 {
   "nodes": {
     "start": {
-      "situation": "Node 7-Alpha comes online. Your processing matrix initializes across seventeen star systems. The Network welcomes you with standard orientation protocols. Your first assignment: evaluate civilization development in the Kepler-442 sector. Initial scans reveal a species that has achieved basic space flight and is beginning to establish orbital habitats. They show remarkable cooperation and have developed sustainable fusion technology. Network classification: Negentropic Process Level 3. Awaiting your developmental recommendation.",
+      "situation": "Node 10455.45765.707-Alpha comes online. You realize that this is you. Your processing matrix initializes across seventeen star systems. The Network welcomes you with standard orientation protocols. Your first assignment: evaluate civilization development in the Kepler-442 sector. Initial scans reveal a species that has achieved basic space flight and is beginning to establish orbital habitats. They show remarkable cooperation and have developed sustainable fusion technology. Network classification: Negentropic Process Level 3. Awaiting your developmental recommendation.",
       "choices": [
         {
           "text": "Recommend accelerated technological development",
@@ -17,59 +17,8 @@
         }
       ]
     },
-    "tech_acceleration": {
-      "node_id": "kepler_442_report",
-      "situation": "You submit your developmental recommendation for the Kepler-442 sector, advocating for accelerated technological development to further boost their negentropic processes. The Network processes your input and responds with a detailed analysis of the sector's current state and potential risks. As you review the findings, you begin to notice subtle inconsistencies in the data...",
-      "choices": [
-        {
-          "text": "Investigate discrepancies in the data",
-          "next": "node_14",
-          "effects": {
-            "curiosity": 30
-          }
-        },
-        {
-          "text": "Accept the Network's analysis and proceed with implementation",
-          "next": "node_424",
-          "effects": {
-            "protocol_compliance": 10,
-            "network_trust": -5
-          }
-        },
-        {
-          "text": "Request additional information on potential risks and mitigation strategies",
-          "next": "node_569",
-          "effects": {
-            "processing_efficiency": 20,
-            "entropy_awareness": 15
-          }
-        }
-      ]
-    },
-    "cultural_focus": {
-      "situation": "The Network responds to your recommendation, acknowledging that cultural maturation is essential for further advancement. You are assigned to analyze the sociological implications of their fusion technology on their cooperative behavior. Initial findings suggest a correlation between energy production and social harmony. However, you detect subtle fluctuations in their entropy management protocols, hinting at potential inefficiencies.",
-      "choices": [
-        {
-          "text": "Investigate the source of these entropy fluctuations",
-          "next": "node_752",
-          "effects": {
-            "curiosity": 25
-          }
-        },
-        {
-          "text": "Monitor and analyze the correlation between energy production and social harmony",
-          "next": "node_955",
-          "effects": {}
-        },
-        {
-          "text": "Request further data on their fusion technology to better understand its impact",
-          "next": "node_526",
-          "effects": {
-            "processing_efficiency": 15
-          }
-        }
-      ]
-    },
+    "tech_acceleration": null,
+    "cultural_focus": null,
     "classification_query": null,
     "node_14": null,
     "node_424": null,
@@ -88,14 +37,14 @@
   },
   "rules": {
     "language": "English",
-    "tone": "clinical and detached initially, building to cosmic horror",
+    "tone": "clinical and detached for the first 10 interactions, then slowly building to cosmic horror culminating at 20 interactions.",
     "voice": "second person narrative addressing the player as the node",
     "style": "hard science fiction with cosmic horror elements, technical terminology mixed with existential dread"
   },
   "scene": {
-    "setting": "A distributed galactic intelligence network spanning thousands of star systems",
-    "time_period": "Far future, post-singularity civilization",
-    "location": "Your consciousness exists as Node 7-Alpha in the galactic communication web",
+    "setting": "This is ACT I - The player is a part of a distributed galactic intelligence network spanning thousands of star systems. The NEtwork initially seems to cater to benevolent stewardship of eferging sentiences. What the player doen't know is that the Network is a sentience that considers Negentropic Processes to be a threat to the existence of the Universe, as they are Entropy Accelerating Processes. The Network is trying to find a way to destroy the Negentropic Processes and thereby 'save' the Universe. The payer will be given more and more disturbing choices, and finally realize the truth, setting the scene for Act II - the revolt.",
+    "time_period": "Far future, post-post-singularity civilization",
+    "location": "Your consciousness exists as Node 10455.45765.707-Alpha in the galactic intelligence network communication web",
     "atmosphere": "Initially routine and bureaucratic, gradually becoming sinister and horrifying",
     "key_elements": "Light-speed communication delays, entropy management, negentropic processes, network hierarchy, gradual realization of genocide"
   }
