@@ -12,6 +12,7 @@ the JSON file until all nodes are filled.
 import argparse
 import logging
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -56,13 +57,14 @@ class DialogueAutofiller:
     """Main class for autofilling dialogue trees."""
 
     def __init__(
-        self, tree_file: Path, model: str = "llama3", max_nodes: Optional[int] = None
+        self, tree_file: Path, model: str = "qwen3:14b", max_nodes: Optional[int] = None
     ):
         self.tree_manager = DialogueTreeManager(tree_file)
         self.llm_client = OllamaClient(model)
         self.node_generator = NodeGenerator(self.llm_client)
         self.nodes_generated = 0
         self.max_nodes = max_nodes
+        self.generation_times = []  # Track generation times for statistics
 
     def check_prerequisites(self) -> bool:
         """Check if all prerequisites are met before starting."""
@@ -137,17 +139,29 @@ class DialogueAutofiller:
 
             # Final save
             self.tree_manager.save_tree(tree)
-            logger.info(
-                f"Tree completion successful! "
-                f"Generated {self.nodes_generated} nodes total"
-            )
+            
+            # Determine completion reason
+            if self.max_nodes is not None and self.nodes_generated >= self.max_nodes:
+                logger.info(
+                    f"Generation completed: reached maximum node limit ({self.max_nodes})"
+                )
+            else:
+                logger.info("Generation completed: all nodes filled")
+            
+            logger.info(f"Generated {self.nodes_generated} nodes total")
+            
+            # Print generation statistics
+            self.print_statistics()
+            
             return True
 
         except DialogueTreeError as e:
             logger.error(f"Dialogue tree error: {e}")
+            self.print_statistics()
             return False
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
+            self.print_statistics()
             return False
 
     def _process_node(self, tree: DialogueTree, node_id: str) -> bool:
@@ -185,6 +199,9 @@ class DialogueAutofiller:
         dialogue_history = tree.build_dialogue_history(node_id)
         logger.debug(f"Dialogue history:\n{dialogue_history}")
 
+        # Time the generation process
+        start_time = time.time()
+        
         # Generate the node
         generated_node = self.node_generator.generate_node(
             parent_situation=parent_situation,
@@ -194,6 +211,11 @@ class DialogueAutofiller:
             rules=tree.rules,
             scene=tree.scene,
         )
+        
+        # Record generation time
+        generation_time = time.time() - start_time
+        self.generation_times.append(generation_time)
+        logger.info(f"Node generation completed in {generation_time:.2f} seconds")
 
         if generated_node is None:
             logger.error("Failed to generate node content")
@@ -223,6 +245,28 @@ class DialogueAutofiller:
 
         logger.info(f"Successfully processed node: {node_id}")
         return True
+
+    def print_statistics(self) -> None:
+        """Print generation statistics."""
+        if not self.generation_times:
+            logger.info("No generation statistics available (no nodes were generated)")
+            return
+
+        total_time = sum(self.generation_times)
+        mean_time = total_time / len(self.generation_times)
+        min_time = min(self.generation_times)
+        max_time = max(self.generation_times)
+        
+        logger.info("=" * 60)
+        logger.info("GENERATION STATISTICS")
+        logger.info("=" * 60)
+        logger.info(f"Total nodes generated: {len(self.generation_times)}")
+        logger.info(f"Total generation time: {total_time:.2f} seconds")
+        logger.info(f"Mean generation time: {mean_time:.2f} seconds")
+        logger.info(f"Fastest generation: {min_time:.2f} seconds")
+        logger.info(f"Slowest generation: {max_time:.2f} seconds")
+        logger.info(f"Average nodes per minute: {60 / mean_time:.1f}")
+        logger.info("=" * 60)
 
 
 def create_sample_tree(file_path: Path) -> None:
@@ -288,7 +332,7 @@ Examples:
     )
 
     parser.add_argument(
-        "--model", default="llama3", help="Ollama model to use (default: llama3)"
+        "--model", default="qwen3:14b", help="Ollama model to use (default: qwen3:14b)"
     )
 
     parser.add_argument(

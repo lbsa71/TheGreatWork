@@ -100,7 +100,7 @@ class PromptGenerator:
 class OllamaClient:
     """Client for interacting with Ollama LLM."""
 
-    def __init__(self, model: str = "llama3"):
+    def __init__(self, model: str = "qwen3:14b"):
         self.model = model
         self._ollama: Optional[Any] = None
 

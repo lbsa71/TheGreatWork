@@ -53,15 +53,15 @@ if ! command -v ollama &> /dev/null; then
 else
     echo "✓ Ollama found"
     
-    # Check if llama3 model is available
-    if ollama list | grep -q "llama3"; then
-        echo "✓ llama3 model is available"
+    # Check if qwen3:14b model is available
+    if ollama list | grep -q "qwen3:14b"; then
+        echo "✓ qwen3:14b model is available"
     else
         echo ""
-        echo "Installing llama3 model for Ollama..."
+        echo "Installing qwen3:14b model for Ollama..."
         echo "This may take several minutes..."
-        ollama pull llama3
-        echo "✓ llama3 model installed"
+        ollama pull qwen3:14b
+        echo "✓ qwen3:14b model installed"
     fi
 fi
 

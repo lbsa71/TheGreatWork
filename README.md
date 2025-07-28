@@ -22,7 +22,7 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 ### Core Requirements
 - Python 3.8 or higher
 - [Ollama](https://ollama.ai/) installed and running
-- An Ollama model (e.g., `llama3`, `mistral`)
+- An Ollama model (e.g., `qwen3:14b`, `llama3`, `mistral`)
 
 ### Web Application Requirements (Optional)
 - Flask (only needed for web interface)
@@ -71,7 +71,7 @@ scripts\setup.ps1
    curl -fsSL https://ollama.ai/install.sh | sh
    
    # Pull a model
-   ollama pull llama3
+   ollama pull qwen3:14b
    
    # Start Ollama server
    ollama serve
@@ -99,7 +99,7 @@ python autofill_dialogue.py tree.json
 
 ```bash
 # Use a different model
-python autofill_dialogue.py tree.json --model mistral
+python autofill_dialogue.py tree.json --model llama3
 
 # Enable verbose logging
 python autofill_dialogue.py tree.json --verbose
@@ -141,7 +141,7 @@ pip install -r web_app/requirements.txt
 python web_app/app.py tree.json
 
 # Run with custom settings
-python web_app/app.py tree.json --model llama3 --host 0.0.0.0 --port 8080 --debug
+python web_app/app.py tree.json --model qwen3:14b --host 0.0.0.0 --port 8080 --debug
 ```
 
 The web application provides:
@@ -480,6 +480,28 @@ Backup files are now automatically organized in a `/backup` folder:
 - Maintains timestamped backups for easy identification
 - Automatically creates the backup directory if it doesn't exist
 
+### Generation Statistics
+The application now tracks and displays generation performance statistics:
+- **Mean generation time**: Average time per node generation
+- **Total generation time**: Cumulative time for all generations
+- **Fastest/Slowest generation**: Performance extremes
+- **Nodes per minute**: Throughput metric
+- **Statistics output**: Displayed on application exit (success or failure)
+
+Example output:
+```
+============================================================
+GENERATION STATISTICS
+============================================================
+Total nodes generated: 15
+Total generation time: 45.23 seconds
+Mean generation time: 3.02 seconds
+Fastest generation: 1.85 seconds
+Slowest generation: 5.67 seconds
+Average nodes per minute: 19.9
+============================================================
+```
+
 ## Troubleshooting
 
 ### Ollama Not Found
@@ -487,7 +509,7 @@ Backup files are now automatically organized in a `/backup` folder:
 - Try running `ollama --version` to verify installation
 
 ### Model Not Available
-- Pull the required model: `ollama pull llama3`
+- Pull the required model: `ollama pull qwen3:14b`
 - Check available models: `ollama list`
 
 ### Generation Fails

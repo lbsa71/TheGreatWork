@@ -68,24 +68,24 @@ class TestDialogueWebApp(unittest.TestCase):
     @patch("web_app.app.NodeGenerator")
     def test_init(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test DialogueWebApp initialization."""
-        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "qwen3:14b")
 
         # Check that components were initialized
         self.assertEqual(web_ui.tree_file, self.tree_file)
-        self.assertEqual(web_ui.model, "llama3")
+        self.assertEqual(web_ui.model, "qwen3:14b")
         self.assertIsNotNone(web_ui.tree_manager)
         self.assertIsNotNone(web_ui.tree)
         self.assertIsNotNone(web_ui.app)
 
         # Check that LLM components were initialized
-        mock_ollama.assert_called_once_with(model="llama3")
+        mock_ollama.assert_called_once_with(model="qwen3:14b")
         mock_node_gen.assert_called_once()
 
     @patch("web_app.app.OllamaClient")
     @patch("web_app.app.NodeGenerator")
     def test_routes_exist(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test that all expected routes exist."""
-        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "qwen3:14b")
 
         # Get all routes
         routes = [rule.rule for rule in web_ui.app.url_map.iter_rules()]
@@ -109,7 +109,7 @@ class TestDialogueWebApp(unittest.TestCase):
     @patch("web_app.app.NodeGenerator")
     def test_get_tree_endpoint(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the /api/tree endpoint."""
-        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "qwen3:14b")
 
         with web_ui.app.test_client() as client:
             response = client.get("/api/tree")
@@ -129,7 +129,7 @@ class TestDialogueWebApp(unittest.TestCase):
     @patch("web_app.app.NodeGenerator")
     def test_get_node_endpoint(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the /api/node/<node_id> endpoint."""
-        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "qwen3:14b")
 
         with web_ui.app.test_client() as client:
             # Test valid node
@@ -155,7 +155,7 @@ class TestDialogueWebApp(unittest.TestCase):
         self, mock_node_gen: Any, mock_ollama: Any
     ) -> None:
         """Test the /api/tree/structure endpoint."""
-        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "qwen3:14b")
 
         with web_ui.app.test_client() as client:
             response = client.get("/api/tree/structure")
@@ -183,7 +183,7 @@ class TestDialogueWebApp(unittest.TestCase):
     @patch("web_app.app.NodeGenerator")
     def test_find_parent_context(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the _find_parent_context method."""
-        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "qwen3:14b")
 
         # Test finding parent for node1
         context = web_ui._find_parent_context("node1")
@@ -209,7 +209,7 @@ class TestDialogueWebApp(unittest.TestCase):
     @patch("web_app.app.NodeGenerator")
     def test_get_history_endpoint(self, mock_node_gen: Any, mock_ollama: Any) -> None:
         """Test the /api/history/<node_id> endpoint."""
-        web_ui = DialogueWebApp(str(self.tree_file), "llama3")
+        web_ui = DialogueWebApp(str(self.tree_file), "qwen3:14b")
 
         with web_ui.app.test_client() as client:
             # Test history for root node (should be empty)

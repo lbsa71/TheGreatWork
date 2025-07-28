@@ -47,16 +47,16 @@ try {
     $ollamaVersion = & ollama --version 2>&1
     Write-Host "✓ Ollama found" -ForegroundColor Green
     
-    # Check if llama3 model is available
+    # Check if qwen3:14b model is available
     $models = & ollama list 2>&1
-    if ($models -match "llama3") {
-        Write-Host "✓ llama3 model is available" -ForegroundColor Green
+    if ($models -match "qwen3:14b") {
+        Write-Host "✓ qwen3:14b model is available" -ForegroundColor Green
     } else {
         Write-Host "" 
-        Write-Host "Installing llama3 model for Ollama..." -ForegroundColor Yellow
+        Write-Host "Installing qwen3:14b model for Ollama..." -ForegroundColor Yellow
         Write-Host "This may take several minutes..." -ForegroundColor Yellow
-        ollama pull llama3
-        Write-Host "✓ llama3 model installed" -ForegroundColor Green
+        ollama pull qwen3:14b
+        Write-Host "✓ qwen3:14b model installed" -ForegroundColor Green
     }
 } catch {
     Write-Host ""

@@ -144,7 +144,7 @@ class TestOllamaClient:
     def test_init(self) -> None:
         """Test initialization."""
         client = OllamaClient()
-        assert client.model == "llama3"
+        assert client.model == "qwen3:14b"
         assert client._ollama is None
 
         client = OllamaClient("mistral")
@@ -181,7 +181,7 @@ class TestOllamaClient:
 
         assert result == "Generated content"
         mock_ollama.chat.assert_called_once_with(
-            model="llama3", messages=[{"role": "user", "content": "Test prompt"}]
+            model="qwen3:14b", messages=[{"role": "user", "content": "Test prompt"}]
         )
 
     def test_generate_content_invalid_response(self) -> None:
@@ -213,7 +213,7 @@ class TestOllamaClient:
 
         assert client.is_available() is True
         mock_ollama.chat.assert_called_once_with(
-            model="llama3", messages=[{"role": "user", "content": "Hello"}]
+            model="qwen3:14b", messages=[{"role": "user", "content": "Hello"}]
         )
 
     def test_is_available_failure(self) -> None:

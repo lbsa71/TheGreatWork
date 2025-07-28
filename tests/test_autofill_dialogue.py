@@ -46,6 +46,7 @@ class TestDialogueAutofiller:
         assert self.autofiller.llm_client == self.mock_llm_client
         assert self.autofiller.node_generator == self.mock_node_generator
         assert self.autofiller.nodes_generated == 0
+        assert self.autofiller.generation_times == []
 
     def test_check_prerequisites_success(self) -> None:
         """Test successful prerequisite check."""
@@ -69,6 +70,32 @@ class TestDialogueAutofiller:
 
         result = self.autofiller.check_prerequisites()
         assert result is False
+
+    def test_print_statistics_no_generations(self) -> None:
+        """Test statistics printing when no nodes were generated."""
+        with patch("autofill_dialogue.logger") as mock_logger:
+            self.autofiller.print_statistics()
+            mock_logger.info.assert_called_with(
+                "No generation statistics available (no nodes were generated)"
+            )
+
+    def test_print_statistics_with_generations(self) -> None:
+        """Test statistics printing with generation times."""
+        # Add some mock generation times
+        self.autofiller.generation_times = [1.5, 2.0, 1.0, 3.5]
+        
+        with patch("autofill_dialogue.logger") as mock_logger:
+            self.autofiller.print_statistics()
+            
+            # Check that statistics were logged
+            calls = mock_logger.info.call_args_list
+            call_strings = [call[0][0] for call in calls]
+            
+            # Should contain key statistics
+            assert any("Total nodes generated: 4" in call for call in call_strings)
+            assert any("Mean generation time: 2.00" in call for call in call_strings)
+            assert any("Fastest generation: 1.00" in call for call in call_strings)
+            assert any("Slowest generation: 3.50" in call for call in call_strings)
 
     def test_process_tree_success(self) -> None:
         """Test successful tree processing."""
@@ -99,13 +126,17 @@ class TestDialogueAutofiller:
         }
         self.mock_node_generator.generate_node.return_value = generated_node
 
-        with patch("autofill_dialogue.validate_generated_node", return_value=True):
+        with patch("autofill_dialogue.validate_generated_node", return_value=True), patch(
+            "autofill_dialogue.DialogueAutofiller.print_statistics"
+        ) as mock_print_stats:
             result = self.autofiller.process_tree()
 
         assert result is True
         assert self.autofiller.nodes_generated == 1
+        assert len(self.autofiller.generation_times) == 1  # Should record generation time
         self.mock_tree_manager.load_tree.assert_called_once()
         self.mock_tree_manager.save_tree.assert_called()
+        mock_print_stats.assert_called_once()  # Statistics should be printed
 
     def test_process_tree_no_null_nodes(self) -> None:
         """Test tree processing when no null nodes exist."""
@@ -430,7 +461,7 @@ class TestMain:
 
             assert result == 0
             # Check that default arguments were used
-            mock_class.assert_called_once_with(Path("tree.json"), "llama3", None)
+            mock_class.assert_called_once_with(Path("tree.json"), "qwen3:14b", None)
 
     def test_main_verbose_flag(self) -> None:
         """Test main function with verbose flag."""

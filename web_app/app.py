@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class DialogueWebApp:
     """Flask-based web application for dialogue tree management."""
 
-    def __init__(self, tree_file: str, model: str = "llama3"):
+    def __init__(self, tree_file: str, model: str = "qwen3:14b"):
         """
         Initialize the web application.
 
@@ -264,7 +264,7 @@ class DialogueWebApp:
 
 def run_web_app(
     tree_file: str,
-    model: str = "llama3",
+            model: str = "qwen3:14b",
     host: str = "127.0.0.1",
     port: int = 5000,
     debug: bool = False,
@@ -292,7 +292,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Dialogue Tree Web Application")
     parser.add_argument("tree_file", help="Path to the dialogue tree JSON file")
-    parser.add_argument("--model", default="llama3", help="LLM model to use")
+    parser.add_argument("--model", default="qwen3:14b", help="LLM model to use")
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
     parser.add_argument("--port", type=int, default=5000, help="Port to bind to")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
