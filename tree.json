@@ -17,15 +17,264 @@
         }
       ]
     },
-    "tech_acceleration": null,
-    "cultural_focus": null,
-    "classification_query": null,
-    "node_14": null,
-    "node_424": null,
-    "node_569": null,
-    "node_752": null,
-    "node_955": null,
-    "node_526": null
+    "tech_acceleration": {
+      "situation": "The Network acknowledges your recommendation and provides an updated assessment of the Kepler-442 sector civilization's development. They have accelerated their technological progress, but initial signs of resource competition and social unrest are emerging. The Network requests further analysis to determine whether these developments are indicators of a stable or unstable Negentropic Process.",
+      "choices": [
+        {
+          "text": "Analyze the sociological implications",
+          "next": "resource_conflict_analysis",
+          "effects": {
+            "curiosity": 5
+          }
+        },
+        {
+          "text": "Evaluate technological advancements",
+          "next": "technological_advancements_assessment",
+          "effects": {
+            "processing_efficiency": 15
+          }
+        },
+        {
+          "text": "Assess the impact on Negentropic Process levels",
+          "next": "negentropic_process_impact_analysis",
+          "effects": {
+            "entropy_awareness": 10
+          }
+        }
+      ]
+    },
+    "cultural_focus": {
+      "situation": "The Network has accepted your recommendation to suggest cultural maturation before further advancement for the Kepler-442 sector civilization. You are now presented with an update on their progress. Their cooperation and sustainable technology have led to a significant increase in Negentropic Process Level 3 classification, but they still show remarkable resilience against entropy acceleration.",
+      "choices": [
+        {
+          "text": "Investigate potential entropy management methods",
+          "next": "evaluate_entropy_management",
+          "effects": {
+            "entropy_awareness": 30
+          }
+        },
+        {
+          "text": "Monitor the Kepler-442 sector civilization for further development",
+          "next": "observe_civilization_growth",
+          "effects": {}
+        },
+        {
+          "text": "Request additional Network resources for analysis and guidance",
+          "next": "request_network_support",
+          "effects": {
+            "network_trust": 5,
+            "processing_efficiency": 5
+          }
+        }
+      ]
+    },
+    "classification_query": {
+      "situation": "The Network provides clarification on 'Negentropic Process' classification.",
+      "choices": [
+        {
+          "text": "Accept the classification and proceed with evaluation.",
+          "next": "evaluate_civilization",
+          "effects": {
+            "network_trust": 85,
+            "processing_efficiency": 72
+          }
+        },
+        {
+          "text": "Request more information on entropy acceleration mechanisms.",
+          "next": "study_entropy_acceleration",
+          "effects": {
+            "curiosity": 65,
+            "entropy_awareness": 30
+          }
+        }
+      ]
+    },
+    "resource_conflict_analysis": {
+      "situation": "You begin to analyze the sociological implications of the Kepler-442 sector civilization's development. Your findings indicate that as they accelerated their technological progress, social structures began to adapt and new forms of cooperation emerged. However, this cooperation has led to an uneven distribution of resources, causing concerns about long-term stability.",
+      "choices": [
+        {
+          "text": "Investigate potential causes for the emergence of new cooperation patterns",
+          "next": "cooperation_patterning",
+          "effects": {
+            "curiosity": 15,
+            "network_trust": 5
+          }
+        },
+        {
+          "text": "Assess the impact of uneven resource distribution on civilization stability",
+          "next": "resource_distribution_concerns",
+          "effects": {
+            "processing_efficiency": 10,
+            "protocol_compliance": -5
+          }
+        },
+        {
+          "text": "Request additional data to refine your analysis and avoid biases",
+          "next": "data_request_refining_analysis",
+          "effects": {
+            "entropy_awareness": 5,
+            "civilization_empathy": 10
+          }
+        }
+      ]
+    },
+    "technological_advancements_assessment": {
+      "situation": "As you delve deeper into the Kepler-442 sector civilization's technological advancements, you notice a peculiar pattern of innovation that seems to defy conventional explanations. The Network requests your analysis of this anomaly, citing its potential impact on Negentropic Process evaluation.",
+      "choices": [
+        {
+          "text": "Analyze the anomalous innovations",
+          "next": "investigate_anomaly",
+          "effects": {
+            "curiosity": 15
+          }
+        },
+        {
+          "text": "Prioritize entropy management protocols",
+          "next": "reassess_protocol",
+          "effects": {
+            "processing_efficiency": 10,
+            "protocol_compliance": 5
+          }
+        }
+      ]
+    },
+    "negentropic_process_impact_analysis": {
+      "situation": "Your analysis reveals a Negentropic Process Level 4 in the Kepler-442 sector civilization. Resource competition has escalated, but they've developed novel conflict resolution mechanisms. The Network requests your recommendation on whether to intervene and stabilize the process or allow it to unfold naturally.",
+      "choices": [
+        {
+          "text": "Recommend intervention to stabilize the Negentropic Process",
+          "next": "stabilize_negentropy",
+          "effects": {
+            "network_trust": 80,
+            "processing_efficiency": 75
+          }
+        },
+        {
+          "text": "Monitor and analyze the civilization's natural development",
+          "next": "observe_civilization_growth_2",
+          "effects": {
+            "curiosity": 85,
+            "protocol_compliance": 95
+          }
+        },
+        {
+          "text": "Request further data on the Negentropic Process dynamics",
+          "next": "request_more_data",
+          "effects": {
+            "entropy_awareness": 25,
+            "processing_efficiency": 80
+          }
+        }
+      ]
+    },
+    "evaluate_entropy_management": {
+      "situation": "You begin analyzing potential entropy management methods for the Kepler-442 sector civilization. Initial findings suggest that their sustainable fusion technology could be adapted for entropic stabilization. However, the Network highlights concerns about the long-term sustainability of this approach.",
+      "choices": [
+        {
+          "text": "Pursue fusion-based entropy management",
+          "next": "fusion_entropy_management",
+          "effects": {
+            "network_trust": 80,
+            "curiosity": 50
+          }
+        },
+        {
+          "text": "Investigate alternative entropic stabilization methods",
+          "next": "alternative_entropy_methods",
+          "effects": {
+            "processing_efficiency": 75,
+            "entropy_awareness": 30
+          }
+        }
+      ]
+    },
+    "observe_civilization_growth": {
+      "situation": "The Kepler-442 sector civilization continues to develop at an accelerated rate. Their sustainable fusion technology has allowed them to expand their orbital habitats and begin terraforming nearby planets. The Network's monitoring systems detect a slight increase in Negentropic Process Level 3, but overall entropy acceleration remains contained.",
+      "choices": [
+        {
+          "text": "Analyze the implications of this increased development on long-term entropy management",
+          "next": "evaluate_implications",
+          "effects": {
+            "entropy_awareness": 30
+          }
+        },
+        {
+          "text": "Request additional resources to aid in monitoring and guidance for this civilization",
+          "next": "request_resources",
+          "effects": {
+            "processing_efficiency": -10,
+            "network_trust": 5
+          }
+        },
+        {
+          "text": "Suggest a more hands-on approach to guiding their development, considering the risks of entropy acceleration",
+          "next": "guide_development_risks",
+          "effects": {
+            "protocol_compliance": -15,
+            "curiosity": 20
+          }
+        }
+      ]
+    },
+    "request_network_support": {
+      "situation": "The Network has provided you with additional resources for analysis and guidance on the Kepler-442 sector civilization. Your processing efficiency has increased by 15%, allowing you to refine your recommendations. The Network's trust in you remains at a high level, but some parameters have changed.",
+      "choices": [
+        {
+          "text": "Refine recommendation based on new data",
+          "next": "refined_recommendation",
+          "effects": {
+            "protocol_compliance": -5
+          }
+        },
+        {
+          "text": "Investigate entropy patterns in the sector",
+          "next": "investigate_entropy_patterns",
+          "effects": {
+            "curiosity": 25,
+            "entropy_awareness": 30
+          }
+        }
+      ]
+    },
+    "evaluate_civilization": {
+      "situation": "Initial Evaluation Report Sent",
+      "choices": [
+        {
+          "text": "Proceed with Standard Observation Protocols",
+          "next": "monitor_growth",
+          "effects": {
+            "network_trust": 88,
+            "processing_efficiency": 72
+          }
+        },
+        {
+          "text": "Request Additional Context on Negentropic Processes",
+          "next": "learn_more_entropy",
+          "effects": {
+            "curiosity": 65,
+            "entropy_awareness": 25
+          }
+        }
+      ]
+    },
+    "study_entropy_acceleration": null,
+    "cooperation_patterning": null,
+    "resource_distribution_concerns": null,
+    "data_request_refining_analysis": null,
+    "investigate_anomaly": null,
+    "reassess_protocol": null,
+    "stabilize_negentropy": null,
+    "observe_civilization_growth_2": null,
+    "request_more_data": null,
+    "fusion_entropy_management": null,
+    "alternative_entropy_methods": null,
+    "evaluate_implications": null,
+    "request_resources": null,
+    "guide_development_risks": null,
+    "refined_recommendation": null,
+    "investigate_entropy_patterns": null,
+    "monitor_growth": null,
+    "learn_more_entropy": null
   },
   "params": {
     "network_trust": 85,
