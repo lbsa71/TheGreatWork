@@ -381,7 +381,7 @@ Examples:
                 model=args.model,
                 host=args.host,
                 port=args.port,
-                debug=args.verbose
+                debug=args.verbose,
             )
             return 0
         except Exception as e:
