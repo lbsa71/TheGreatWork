@@ -26,7 +26,6 @@ from src.dialogue_tree import (
     validate_generated_node,
 )
 from src.llm_integration import NodeGenerator, OllamaClient
-from src.web_ui import run_web_ui
 
 # Configure logging
 logging.basicConfig(
@@ -269,8 +268,6 @@ Examples:
   python autofill_dialogue.py --create-sample sample_tree.json
   python autofill_dialogue.py tree.json --debug
   python autofill_dialogue.py tree.json --debug --start-node node1
-  python autofill_dialogue.py tree.json --web
-  python autofill_dialogue.py tree.json --web --port 8080
         """,
     )
 
@@ -307,25 +304,7 @@ Examples:
         help="Launch interactive dialogue tree debugger",
     )
 
-    parser.add_argument(
-        "--web",
-        action="store_true",
-        help="Launch web UI for dialogue tree navigation",
-    )
 
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=5000,
-        help="Port for web UI (default: 5000)",
-    )
-
-    parser.add_argument(
-        "--host",
-        type=str,
-        default="127.0.0.1",
-        help="Host for web UI (default: 127.0.0.1)",
-    )
 
     parser.add_argument(
         "--start-node",
@@ -365,28 +344,7 @@ Examples:
             logger.error(f"Debugger error: {e}")
             return 1
 
-    # Handle web UI mode
-    if args.web:
-        logger.info("Starting web UI for dialogue tree navigation")
-        logger.info(f"Tree file: {tree_file}")
-        logger.info(f"Host: {args.host}:{args.port}")
 
-        if not tree_file.exists():
-            logger.error(f"Dialogue tree file not found: {tree_file}")
-            return 1
-
-        try:
-            run_web_ui(
-                tree_file=str(tree_file),
-                model=args.model,
-                host=args.host,
-                port=args.port,
-                debug=args.verbose,
-            )
-            return 0
-        except Exception as e:
-            logger.error(f"Web UI error: {e}")
-            return 1
 
     logger.info("Starting Bootstrap Game Dialog Generator")
     logger.info(f"Tree file: {tree_file}")
