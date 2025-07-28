@@ -15,8 +15,16 @@ class TestDialogueTreeValidation:
             "start": {
                 "situation": "The king is dead.",
                 "choices": [
-                    {"text": "Mourn publicly", "next": "node1", "effects": {"loyalty": 10}},
-                    {"text": "Seize the throne", "next": "node2", "effects": {"ambition": 15}},
+                    {
+                        "text": "Mourn publicly",
+                        "next": "node1",
+                        "effects": {"loyalty": 10},
+                    },
+                    {
+                        "text": "Seize the throne",
+                        "next": "node2",
+                        "effects": {"ambition": 15},
+                    },
                 ],
             },
             "node1": {
@@ -28,10 +36,10 @@ class TestDialogueTreeValidation:
             "node2": None,
         }
         params = {"loyalty": 50, "ambition": 30}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Tree should remain unchanged since it's already valid
         assert tree.nodes["start"]["situation"] == "The king is dead."
         assert len(tree.nodes["start"]["choices"]) == 2
@@ -52,10 +60,10 @@ class TestDialogueTreeValidation:
             },
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Missing nodes should be created as null
         assert "missing_node1" in tree.nodes
         assert tree.nodes["missing_node1"] is None
@@ -84,10 +92,10 @@ class TestDialogueTreeValidation:
             "orphan2": None,  # Orphaned null node
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Orphaned nodes should be removed
         assert "start" in tree.nodes  # Root node should remain
         assert "node1" in tree.nodes  # Referenced node should remain
@@ -100,8 +108,16 @@ class TestDialogueTreeValidation:
             "start": {
                 "situation": "The king is dead.",
                 "choices": [
-                    {"text": "Mourn publicly", "next": "node1", "effects": {"loyalty": 10, "wisdom": 5}},
-                    {"text": "Seize the throne", "next": "node2", "effects": {"ambition": 15, "charisma": 8}},
+                    {
+                        "text": "Mourn publicly",
+                        "next": "node1",
+                        "effects": {"loyalty": 10, "wisdom": 5},
+                    },
+                    {
+                        "text": "Seize the throne",
+                        "next": "node2",
+                        "effects": {"ambition": 15, "charisma": 8},
+                    },
                 ],
             },
             "node1": {
@@ -113,10 +129,10 @@ class TestDialogueTreeValidation:
             "node2": None,
         }
         params = {"loyalty": 50}  # Missing: wisdom, ambition, charisma, reputation
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Missing parameters should be added with default value 0
         assert tree.params["loyalty"] == 50  # Existing param unchanged
         assert tree.params["wisdom"] == 0  # New param added
@@ -155,18 +171,18 @@ class TestDialogueTreeValidation:
             "invalid_node4": 123,  # Not a dictionary - orphaned
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Valid nodes should remain
         assert tree.nodes["start"]["situation"] == "The king is dead."
         assert tree.nodes["valid_node"]["situation"] == "Valid node."
-        
+
         # Referenced invalid nodes should be converted to null
         assert tree.nodes["invalid_node1"] is None
         assert tree.nodes["invalid_node2"] is None
-        
+
         # Unreferenced invalid nodes should be removed entirely
         assert "invalid_node3" not in tree.nodes
         assert "invalid_node4" not in tree.nodes
@@ -186,7 +202,7 @@ class TestDialogueTreeValidation:
                 "situation": "You mourn publicly.",
                 "choices": [
                     {
-                        "text": "Continue", 
+                        "text": "Continue",
                         "next": None,
                         "extra_choice_field": "remove me",
                     },
@@ -195,16 +211,16 @@ class TestDialogueTreeValidation:
             },
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Extra fields should be removed
         assert "extra_field" not in tree.nodes["start"]
         assert "another_extra" not in tree.nodes["start"]
         assert "unwanted" not in tree.nodes["node1"]
         assert "extra_choice_field" not in tree.nodes["start"]["choices"][0]
-        
+
         # Valid fields should remain
         assert tree.nodes["start"]["situation"] == "The king is dead."
         assert tree.nodes["start"]["choices"][0]["text"] == "Mourn publicly"
@@ -220,8 +236,16 @@ class TestDialogueTreeValidation:
                     {"next": "node2"},  # Missing text
                     "invalid choice string",  # Not a dict
                     {"text": 123, "next": "node3"},  # text not string
-                    {"text": "Another valid", "next": "node4", "effects": {"loyalty": 5}},
-                    {"text": "Invalid effects", "next": "node5", "effects": "not a dict"},
+                    {
+                        "text": "Another valid",
+                        "next": "node4",
+                        "effects": {"loyalty": 5},
+                    },
+                    {
+                        "text": "Invalid effects",
+                        "next": "node5",
+                        "effects": "not a dict",
+                    },
                 ],
             },
             "node1": None,
@@ -229,23 +253,23 @@ class TestDialogueTreeValidation:
             "node5": None,
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Only valid choices should remain
         choices = tree.nodes["start"]["choices"]
         assert len(choices) == 3  # Updated expectation
-        
+
         # First valid choice
         assert choices[0]["text"] == "Valid choice"
         assert choices[0]["next"] == "node1"
-        
+
         # Second valid choice with effects
         assert choices[1]["text"] == "Another valid"
         assert choices[1]["next"] == "node4"
         assert choices[1]["effects"] == {"loyalty": 5}
-        
+
         # Third choice with invalid effects stripped
         assert choices[2]["text"] == "Invalid effects"
         assert choices[2]["next"] == "node5"
@@ -274,10 +298,10 @@ class TestDialogueTreeValidation:
             },
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # All nodes should be preserved (start and isolated_root are both roots)
         assert "start" in tree.nodes
         assert "node1" in tree.nodes
@@ -295,16 +319,16 @@ class TestDialogueTreeValidation:
             },
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
-        
+
         # Empty effects should be preserved
         choices = tree.nodes["start"]["choices"]
         assert "effects" in choices[0]
         assert choices[0]["effects"] == {}
         assert "effects" not in choices[1]
-        
+
         # No new params should be added from empty effects
         assert list(tree.params.keys()) == ["loyalty"]
 
@@ -314,9 +338,21 @@ class TestDialogueTreeValidation:
             "start": {
                 "situation": "Complex scenario.",
                 "choices": [
-                    {"text": "Go to valid", "next": "valid_node", "effects": {"new_param": 10}},
-                    {"text": "Go to missing", "next": "missing_node", "effects": {"another_param": 5}},
-                    {"text": "Go to invalid", "next": "invalid_node", "effects": {"third_param": 3}},
+                    {
+                        "text": "Go to valid",
+                        "next": "valid_node",
+                        "effects": {"new_param": 10},
+                    },
+                    {
+                        "text": "Go to missing",
+                        "next": "missing_node",
+                        "effects": {"another_param": 5},
+                    },
+                    {
+                        "text": "Go to invalid",
+                        "next": "invalid_node",
+                        "effects": {"third_param": 3},
+                    },
                 ],
                 "extra_field": "remove me",
             },
@@ -335,23 +371,23 @@ class TestDialogueTreeValidation:
             },
         }
         params = {"loyalty": 50}
-        
+
         tree = DialogueTree(nodes, params)
         original_node_count = len(tree.nodes)
         tree.validate_and_fix_tree()
-        
+
         # Check all validation fixes were applied
-        
+
         # 1. Missing referenced node should be created
         assert "missing_node" in tree.nodes
         assert tree.nodes["missing_node"] is None
-        
+
         # 2. Orphaned node should be removed
         assert "orphan" not in tree.nodes
-        
+
         # 3. Invalid referenced node should be nullified
         assert tree.nodes["invalid_node"] is None
-        
+
         # 4. Effect params should be added
         assert "new_param" in tree.params
         assert tree.params["new_param"] == 0
@@ -359,10 +395,10 @@ class TestDialogueTreeValidation:
         assert tree.params["another_param"] == 0
         assert "third_param" in tree.params
         assert tree.params["third_param"] == 0
-        
+
         # 5. Extra fields should be removed
         assert "extra_field" not in tree.nodes["start"]
-        
+
         # Valid structure should be preserved
         assert tree.nodes["start"]["situation"] == "Complex scenario."
         assert tree.nodes["valid_node"]["situation"] == "Valid node."

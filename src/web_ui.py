@@ -9,9 +9,9 @@ and debugging dialogue trees with a more interactive UI.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, jsonify, render_template, request, send_from_directory
 
 from .dialogue_tree import DialogueTree, DialogueTreeManager
 from .llm_integration import NodeGenerator, OllamaClient
@@ -53,7 +53,7 @@ class DialogueWebUI:
         """Setup Flask routes."""
 
         @self.app.route("/")
-        def index() -> str:
+        def index() -> Any:
             """Main page."""
             return render_template("index.html")
 
@@ -251,7 +251,9 @@ class DialogueWebUI:
                         }
         return None
 
-    def run(self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False) -> None:
+    def run(
+        self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False
+    ) -> None:
         """Run the web server."""
         logger.info(f"Starting web UI on http://{host}:{port}")
         self.app.run(host=host, port=port, debug=debug)

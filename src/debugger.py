@@ -8,7 +8,7 @@ and debugging dialogue trees.
 
 import logging
 import sys
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from dialogue_tree import DialogueTree
 
