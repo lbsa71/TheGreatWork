@@ -152,15 +152,21 @@ class TestDialogueAutofiller:
         mock_tree.get_node.return_value = {"situation": "Test situation"}
         mock_tree.params = {"test": 1}
         mock_tree.nodes = {"start": {}, "node1": None}
-        mock_tree.generate_unique_node_id.side_effect = (
-            lambda x: x or "fallback_node"
-        )
+        mock_tree.generate_unique_node_id.side_effect = lambda x: x or "fallback_node"
 
         generated_node = {
             "situation": "Generated situation",
             "choices": [
-                {"text": "Choice A", "next": None, "suggested_node_id": "choice_a_outcome"},
-                {"text": "Choice B", "next": None, "suggested_node_id": "choice_b_outcome"},
+                {
+                    "text": "Choice A",
+                    "next": None,
+                    "suggested_node_id": "choice_a_outcome",
+                },
+                {
+                    "text": "Choice B",
+                    "next": None,
+                    "suggested_node_id": "choice_b_outcome",
+                },
             ],
         }
         self.mock_node_generator.generate_node.return_value = generated_node
@@ -225,7 +231,7 @@ class TestDialogueAutofiller:
         # Mock the unique ID generation to return the suggested IDs
         mock_tree.generate_unique_node_id.side_effect = [
             "investigate_entropy",
-            "talk_to_mother_again"
+            "talk_to_mother_again",
         ]
 
         generated_node = {
@@ -235,13 +241,13 @@ class TestDialogueAutofiller:
                     "text": "Look for signs of poison",
                     "next": None,
                     "suggested_node_id": "investigate_entropy",
-                    "effects": {"wisdom": 5}
+                    "effects": {"wisdom": 5},
                 },
                 {
                     "text": "Question the queen",
                     "next": None,
                     "suggested_node_id": "talk_to_mother_again",
-                    "effects": {"loyalty": -10}
+                    "effects": {"loyalty": -10},
                 },
             ],
         }
@@ -254,9 +260,7 @@ class TestDialogueAutofiller:
 
         # Verify suggested_node_id was used for unique ID generation
         mock_tree.generate_unique_node_id.assert_any_call("investigate_entropy")
-        mock_tree.generate_unique_node_id.assert_any_call(
-            "talk_to_mother_again"
-        )
+        mock_tree.generate_unique_node_id.assert_any_call("talk_to_mother_again")
 
         # Verify the final node has descriptive next IDs and no suggested_node_id
         expected_node = {
@@ -265,12 +269,12 @@ class TestDialogueAutofiller:
                 {
                     "text": "Look for signs of poison",
                     "next": "investigate_entropy",
-                    "effects": {"wisdom": 5}
+                    "effects": {"wisdom": 5},
                 },
                 {
                     "text": "Question the queen",
                     "next": "talk_to_mother_again",
-                    "effects": {"loyalty": -10}
+                    "effects": {"loyalty": -10},
                 },
             ],
         }

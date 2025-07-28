@@ -19,8 +19,8 @@ from src.dialogue_tree import (
     DialogueTree,
     DialogueTreeError,
     DialogueTreeManager,
-    validate_generated_node,
     generate_unique_node_id,
+    validate_generated_node,
 )
 
 
@@ -95,7 +95,7 @@ class TestDialogueTree:
         assert self.tree.rules == {}
         assert self.tree.scene == {}
 
-    def test_init_with_rules_and_scene(self):
+    def test_init_with_rules_and_scene(self) -> None:
         """Test initialization with rules and scene."""
         rules = {"tone": "dramatic", "voice": "third person"}
         scene = {"setting": "medieval kingdom", "atmosphere": "tense"}
@@ -154,7 +154,7 @@ class TestDialogueTree:
         expected = {"nodes": self.nodes, "params": self.params}
         assert result == expected
 
-    def test_to_dict_with_rules_and_scene(self):
+    def test_to_dict_with_rules_and_scene(self) -> None:
         """Test conversion to dictionary with rules and scene."""
         rules = {"tone": "dramatic"}
         scene = {"setting": "medieval kingdom"}
@@ -177,7 +177,7 @@ class TestDialogueTree:
         assert tree.rules == {}
         assert tree.scene == {}
 
-    def test_from_dict_with_rules_and_scene(self):
+    def test_from_dict_with_rules_and_scene(self) -> None:
         """Test creation from dictionary with rules and scene."""
         rules = {"tone": "dramatic"}
         scene = {"setting": "medieval kingdom"}
@@ -491,7 +491,11 @@ class TestValidateGeneratedNode:
             "situation": "Test",
             "choices": [
                 {"text": "No suggestion", "next": None},
-                {"text": "With suggestion", "next": None, "suggested_node_id": "test_node"},
+                {
+                    "text": "With suggestion",
+                    "next": None,
+                    "suggested_node_id": "test_node",
+                },
             ],
         }
         assert validate_generated_node(node) is True
@@ -501,11 +505,7 @@ class TestValidateGeneratedNode:
         node: Dict[str, Any] = {
             "situation": "Test",
             "choices": [
-                {
-                    "text": "Invalid",
-                    "next": None,
-                    "suggested_node_id": 123
-                },
+                {"text": "Invalid", "next": None, "suggested_node_id": 123},
                 {"text": "Valid", "next": None},
             ],
         }
@@ -582,16 +582,13 @@ class TestDialogueTreeGenerateUniqueNodeId:
         """Test the method delegates correctly to standalone function."""
         tree = DialogueTree(
             nodes={"start": {"situation": "test"}, "investigate_entropy": None},
-            params={"test": 1}
+            params={"test": 1},
         )
         result = tree.generate_unique_node_id("investigate_entropy")
         assert result == "investigate_entropy_2"
 
     def test_generate_unique_node_id_new_name(self) -> None:
         """Test generating a completely new name."""
-        tree = DialogueTree(
-            nodes={"start": {"situation": "test"}},
-            params={"test": 1}
-        )
+        tree = DialogueTree(nodes={"start": {"situation": "test"}}, params={"test": 1})
         result = tree.generate_unique_node_id("talk_to_mother")
         assert result == "talk_to_mother"

@@ -80,7 +80,7 @@ class PromptGenerator:
                 "  - 'text': string",
                 "  - 'next': null (placeholder)",
                 "  - 'effects': dictionary of parameter changes (e.g., "
-                "{{\"loyalty\": 10}})",
+                '{{"loyalty": 10}})',
                 "  - 'suggested_node_id': descriptive snake_case identifier "
                 "for the choice outcome (e.g., 'investigate_entropy', "
                 "'talk_to_mother_again')",
@@ -226,10 +226,8 @@ class NodeGenerator:
                     start_idx = content.find("{")
                     end_idx = content.rfind("}")
                     if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                        json_content = content[start_idx:end_idx + 1]
-                        logger.info(
-                            f"Extracted JSON content:\n{json_content}"
-                        )
+                        json_content = content[start_idx : end_idx + 1]
+                        logger.info(f"Extracted JSON content:\n{json_content}")
                         node_data = json.loads(json_content)
                     else:
                         raise

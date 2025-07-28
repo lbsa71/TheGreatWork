@@ -19,10 +19,29 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 
 ## Requirements
 
+### Core Requirements
 - Python 3.8 or higher
 - [Ollama](https://ollama.ai/) installed and running
 - An Ollama model (e.g., `llama3`, `mistral`)
-- Flask (for web UI functionality)
+
+### Web Application Requirements (Optional)
+- Flask (only needed for web interface)
+- Install with: `pip install -r web_app/requirements.txt`
+
+## Architecture
+
+This project follows a clean separation of concerns:
+
+- **Core Logic** (`src/`): Business logic for dialogue tree processing, LLM integration, and tree management
+- **CLI Application** (`autofill_dialogue.py`): Command-line interface for the core functionality
+- **Web Application** (`web_app/`): Dedicated Flask application that uses the core logic as a library
+- **Templates & Static Files** (`templates/`, `static/`): Web UI assets
+
+This architecture provides:
+- Core functionality that works without web dependencies
+- A dedicated web application for interactive tree management
+- Clean separation between business logic and presentation
+- Independent testing of core logic and web interface
 
 ## Quick Start
 
@@ -97,17 +116,40 @@ python autofill_dialogue.py tree.json --debug
 # Launch debugger starting from a specific node
 python autofill_dialogue.py tree.json --debug --start-node node1
 
-# Launch web UI
-python autofill_dialogue.py tree.json --web
+# Launch web application (requires Flask)
+python web_app/app.py tree.json
 
-# Launch web UI on custom port
-python autofill_dialogue.py tree.json --web --port 8080
+# Launch web app on custom port
+python web_app/app.py tree.json --port 8080
 
-# Launch web UI on custom host and port
-python autofill_dialogue.py tree.json --web --host 0.0.0.0 --port 8080
+# Launch web app on custom host and port
+python web_app/app.py tree.json --host 0.0.0.0 --port 8080
 
 # Show help
 python autofill_dialogue.py --help
+```
+
+## Web Application
+
+For interactive dialogue tree management, use the dedicated web application:
+
+```bash
+# Install web app dependencies
+pip install -r web_app/requirements.txt
+
+# Run the web application
+python web_app/app.py tree.json
+
+# Run with custom settings
+python web_app/app.py tree.json --model llama3 --host 0.0.0.0 --port 8080 --debug
+```
+
+The web application provides:
+- Interactive tree visualization
+- Real-time node generation
+- Dialogue history tracking
+- Tree structure navigation
+- Save/load functionality
 ```
 
 ## Input Format
