@@ -486,6 +486,7 @@ The application now tracks and displays generation performance statistics:
 - **Total generation time**: Cumulative time for all generations
 - **Fastest/Slowest generation**: Performance extremes
 - **Nodes per minute**: Throughput metric
+- **Failed nodes tracking**: Count and list of nodes that failed generation
 - **Statistics output**: Displayed on application exit (success or failure)
 
 Example output:
@@ -499,8 +500,18 @@ Mean generation time: 3.02 seconds
 Fastest generation: 1.85 seconds
 Slowest generation: 5.67 seconds
 Average nodes per minute: 19.9
+Failed nodes: 2
+Failed node IDs: node1, node2
 ============================================================
 ```
+
+### Error Resilience
+The application now handles generation failures gracefully:
+- **JSON parsing errors**: Failed nodes are skipped and processing continues
+- **LLM generation failures**: Individual node failures don't stop the entire process
+- **Failed node tracking**: Failed nodes are marked and tracked for review
+- **Progress preservation**: Successfully generated nodes are saved even if some fail
+- **Comprehensive reporting**: Statistics include both successful and failed generations
 
 ## Troubleshooting
 
@@ -518,6 +529,12 @@ Average nodes per minute: 19.9
 - Check the logs for detailed error messages
 - Use `--verbose` flag for additional debug information
 - Check the debug output to see what content is being generated
+
+### Failed Nodes
+- Failed nodes are marked with `{"__failed__": True, "situation": "Generation failed", "choices": []}`
+- Review failed node IDs in the statistics output
+- Failed nodes can be manually edited or regenerated later
+- The application continues processing other nodes even when some fail
 
 ### Tests Failing
 - Ensure all dependencies are installed: `pip install pytest pytest-cov pytest-mock`

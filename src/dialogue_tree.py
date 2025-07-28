@@ -58,6 +58,9 @@ class DialogueTree:
         for node_id, node_data in self.nodes.items():
             if node_data is None:
                 return node_id
+            # Skip nodes that have been marked as failed
+            if isinstance(node_data, dict) and node_data.get("__failed__"):
+                continue
         return None
 
     def find_parent_and_choice(

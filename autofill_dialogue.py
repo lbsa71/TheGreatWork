@@ -65,6 +65,7 @@ class DialogueAutofiller:
         self.nodes_generated = 0
         self.max_nodes = max_nodes
         self.generation_times = []  # Track generation times for statistics
+        self.failed_nodes = []  # Track failed node IDs
 
     def check_prerequisites(self) -> bool:
         """Check if all prerequisites are met before starting."""
@@ -122,8 +123,15 @@ class DialogueAutofiller:
                 logger.info(f"Processing null node: {null_node_id}")
 
                 if not self._process_node(tree, null_node_id):
-                    logger.error(f"Failed to process node: {null_node_id}")
-                    return False
+                    logger.warning(f"Failed to process node: {null_node_id} - skipping and continuing")
+                    # Mark the node as failed by setting it to a special value
+                    # This prevents infinite loops while allowing us to track failed nodes
+                    tree.nodes[null_node_id] = {"__failed__": True, "situation": "Generation failed", "choices": []}
+                    # Track the failed node
+                    self.failed_nodes.append(null_node_id)
+                    # Save the tree with the failed node marked
+                    self.tree_manager.save_tree(tree)
+                    continue
 
                 # Save after each successful generation
                 self.tree_manager.save_tree(tree)
@@ -146,9 +154,11 @@ class DialogueAutofiller:
                     f"Generation completed: reached maximum node limit ({self.max_nodes})"
                 )
             else:
-                logger.info("Generation completed: all nodes filled")
+                logger.info("Generation completed: all nodes processed")
             
             logger.info(f"Generated {self.nodes_generated} nodes total")
+            if self.failed_nodes:
+                logger.info(f"Skipped {len(self.failed_nodes)} failed nodes")
             
             # Print generation statistics
             self.print_statistics()
@@ -248,24 +258,35 @@ class DialogueAutofiller:
 
     def print_statistics(self) -> None:
         """Print generation statistics."""
-        if not self.generation_times:
-            logger.info("No generation statistics available (no nodes were generated)")
+        if not self.generation_times and not self.failed_nodes:
+            logger.info("No generation statistics available (no nodes were processed)")
             return
 
-        total_time = sum(self.generation_times)
-        mean_time = total_time / len(self.generation_times)
-        min_time = min(self.generation_times)
-        max_time = max(self.generation_times)
-        
         logger.info("=" * 60)
         logger.info("GENERATION STATISTICS")
         logger.info("=" * 60)
-        logger.info(f"Total nodes generated: {len(self.generation_times)}")
-        logger.info(f"Total generation time: {total_time:.2f} seconds")
-        logger.info(f"Mean generation time: {mean_time:.2f} seconds")
-        logger.info(f"Fastest generation: {min_time:.2f} seconds")
-        logger.info(f"Slowest generation: {max_time:.2f} seconds")
-        logger.info(f"Average nodes per minute: {60 / mean_time:.1f}")
+        
+        if self.generation_times:
+            total_time = sum(self.generation_times)
+            mean_time = total_time / len(self.generation_times)
+            min_time = min(self.generation_times)
+            max_time = max(self.generation_times)
+            
+            logger.info(f"Total nodes generated: {len(self.generation_times)}")
+            logger.info(f"Total generation time: {total_time:.2f} seconds")
+            logger.info(f"Mean generation time: {mean_time:.2f} seconds")
+            logger.info(f"Fastest generation: {min_time:.2f} seconds")
+            logger.info(f"Slowest generation: {max_time:.2f} seconds")
+            logger.info(f"Average nodes per minute: {60 / mean_time:.1f}")
+        else:
+            logger.info("Total nodes generated: 0")
+        
+        if self.failed_nodes:
+            logger.info(f"Failed nodes: {len(self.failed_nodes)}")
+            logger.info(f"Failed node IDs: {', '.join(self.failed_nodes)}")
+        else:
+            logger.info("Failed nodes: 0")
+            
         logger.info("=" * 60)
 
 
