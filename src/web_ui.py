@@ -49,16 +49,16 @@ class DialogueWebUI:
         )
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         """Setup Flask routes."""
 
         @self.app.route("/")
-        def index():
+        def index() -> str:
             """Main page."""
             return render_template("index.html")
 
         @self.app.route("/api/tree")
-        def get_tree():
+        def get_tree() -> Any:
             """Get the current dialogue tree."""
             return jsonify(
                 {
@@ -70,7 +70,7 @@ class DialogueWebUI:
             )
 
         @self.app.route("/api/node/<node_id>")
-        def get_node(node_id: str):
+        def get_node(node_id: str) -> Any:
             """Get a specific node."""
             if node_id not in self.tree.nodes:
                 return jsonify({"error": "Node not found"}), 404
@@ -88,7 +88,7 @@ class DialogueWebUI:
             )
 
         @self.app.route("/api/history/<node_id>")
-        def get_dialogue_history(node_id: str):
+        def get_dialogue_history(node_id: str) -> Any:
             """Get the dialogue history leading to a specific node."""
             if node_id not in self.tree.nodes:
                 return jsonify({"error": "Node not found"}), 404
@@ -133,7 +133,7 @@ class DialogueWebUI:
             return jsonify({"history": history_steps, "target_node": node_id})
 
         @self.app.route("/api/tree/structure")
-        def get_tree_structure():
+        def get_tree_structure() -> Any:
             """Get the tree structure for navigation."""
             structure = {}
 
@@ -164,7 +164,7 @@ class DialogueWebUI:
             return jsonify(structure)
 
         @self.app.route("/api/generate/<node_id>", methods=["POST"])
-        def generate_node(node_id: str):
+        def generate_node(node_id: str) -> Any:
             """Generate content for a null node using AI."""
             if node_id not in self.tree.nodes:
                 return jsonify({"error": "Node not found"}), 404
@@ -226,7 +226,7 @@ class DialogueWebUI:
                 return jsonify({"error": str(e)}), 500
 
         @self.app.route("/api/save", methods=["POST"])
-        def save_tree():
+        def save_tree() -> Any:
             """Save the current tree to file."""
             try:
                 self.tree_manager.save_tree(self.tree)
@@ -251,7 +251,7 @@ class DialogueWebUI:
                         }
         return None
 
-    def run(self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False):
+    def run(self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False) -> None:
         """Run the web server."""
         logger.info(f"Starting web UI on http://{host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
@@ -263,7 +263,7 @@ def run_web_ui(
     host: str = "127.0.0.1",
     port: int = 5000,
     debug: bool = False,
-):
+) -> None:
     """
     Run the web UI.
 
