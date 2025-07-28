@@ -152,12 +152,15 @@ class TestDialogueAutofiller:
         mock_tree.get_node.return_value = {"situation": "Test situation"}
         mock_tree.params = {"test": 1}
         mock_tree.nodes = {"start": {}, "node1": None}
+        mock_tree.generate_unique_node_id.side_effect = (
+            lambda x: x or "fallback_node"
+        )
 
         generated_node = {
             "situation": "Generated situation",
             "choices": [
-                {"text": "Choice A", "next": None},
-                {"text": "Choice B", "next": None},
+                {"text": "Choice A", "next": None, "suggested_node_id": "choice_a_outcome"},
+                {"text": "Choice B", "next": None, "suggested_node_id": "choice_b_outcome"},
             ],
         }
         self.mock_node_generator.generate_node.return_value = generated_node
@@ -166,7 +169,20 @@ class TestDialogueAutofiller:
             result = self.autofiller._process_node(mock_tree, "node1")
 
         assert result is True
-        mock_tree.update_node.assert_called_once_with("node1", generated_node)
+
+        # Verify the node was updated with processed choices (suggested_node_id removed)
+        expected_node = {
+            "situation": "Generated situation",
+            "choices": [
+                {"text": "Choice A", "next": "choice_a_outcome"},
+                {"text": "Choice B", "next": "choice_b_outcome"},
+            ],
+        }
+        mock_tree.update_node.assert_called_once_with("node1", expected_node)
+
+        # Verify new placeholder nodes were created
+        assert mock_tree.nodes["choice_a_outcome"] is None
+        assert mock_tree.nodes["choice_b_outcome"] is None
 
     def test_process_node_no_parent(self) -> None:
         """Test node processing when parent is not found."""
@@ -194,6 +210,110 @@ class TestDialogueAutofiller:
             result = self.autofiller._process_node(mock_tree, "node1")
 
         assert result is False
+
+    def test_process_node_with_suggested_node_ids(self) -> None:
+        """Test node processing with suggested node IDs."""
+        mock_tree = Mock()
+        mock_tree.find_parent_and_choice.return_value = (
+            "start",
+            {"text": "Investigate the death", "next": "node1"},
+        )
+        mock_tree.get_node.return_value = {"situation": "Test situation"}
+        mock_tree.params = {"loyalty": 50}
+        mock_tree.nodes = {"start": {}, "node1": None}
+
+        # Mock the unique ID generation to return the suggested IDs
+        mock_tree.generate_unique_node_id.side_effect = [
+            "investigate_entropy",
+            "talk_to_mother_again"
+        ]
+
+        generated_node = {
+            "situation": "You decide to investigate the circumstances...",
+            "choices": [
+                {
+                    "text": "Look for signs of poison",
+                    "next": None,
+                    "suggested_node_id": "investigate_entropy",
+                    "effects": {"wisdom": 5}
+                },
+                {
+                    "text": "Question the queen",
+                    "next": None,
+                    "suggested_node_id": "talk_to_mother_again",
+                    "effects": {"loyalty": -10}
+                },
+            ],
+        }
+        self.mock_node_generator.generate_node.return_value = generated_node
+
+        with patch("autofill_dialogue.validate_generated_node", return_value=True):
+            result = self.autofiller._process_node(mock_tree, "node1")
+
+        assert result is True
+
+        # Verify suggested_node_id was used for unique ID generation
+        mock_tree.generate_unique_node_id.assert_any_call("investigate_entropy")
+        mock_tree.generate_unique_node_id.assert_any_call(
+            "talk_to_mother_again"
+        )
+
+        # Verify the final node has descriptive next IDs and no suggested_node_id
+        expected_node = {
+            "situation": "You decide to investigate the circumstances...",
+            "choices": [
+                {
+                    "text": "Look for signs of poison",
+                    "next": "investigate_entropy",
+                    "effects": {"wisdom": 5}
+                },
+                {
+                    "text": "Question the queen",
+                    "next": "talk_to_mother_again",
+                    "effects": {"loyalty": -10}
+                },
+            ],
+        }
+        mock_tree.update_node.assert_called_once_with("node1", expected_node)
+
+    def test_process_node_fallback_when_no_suggested_id(self) -> None:
+        """Test node processing falls back to generated ID when no suggestion provided."""
+        mock_tree = Mock()
+        mock_tree.find_parent_and_choice.return_value = (
+            "start",
+            {"text": "Choice", "next": "node1"},
+        )
+        mock_tree.get_node.return_value = {"situation": "Test situation"}
+        mock_tree.params = {"test": 1}
+        mock_tree.nodes = {"start": {}, "node1": None}
+
+        # Mock fallback ID generation
+        mock_tree.generate_unique_node_id.return_value = "node_2"
+
+        generated_node = {
+            "situation": "Generated situation",
+            "choices": [
+                {"text": "Choice A", "next": None},  # No suggested_node_id
+            ],
+        }
+        self.mock_node_generator.generate_node.return_value = generated_node
+
+        with patch("autofill_dialogue.validate_generated_node", return_value=True):
+            result = self.autofiller._process_node(mock_tree, "node1")
+
+        assert result is True
+
+        # Verify fallback was used (empty string passed to generate_unique_node_id)
+        mock_tree.generate_unique_node_id.assert_called_once_with("")
+
+        # Verify the node has the fallback ID
+        expected_node = {
+            "situation": "Generated situation",
+            "choices": [
+                {"text": "Choice A", "next": "node_2"},
+            ],
+        }
+        mock_tree.update_node.assert_called_once_with("node1", expected_node)
 
 
 class TestCreateSampleTree:

@@ -66,10 +66,10 @@ class PromptGenerator:
         prompt_parts.extend(
             [
                 "",
-                f"The current parent node has this situation:",
+                "The current parent node has this situation:",
                 f'"{parent_situation}"',
                 "",
-                f"The player selected this choice:",
+                "The player selected this choice:",
                 f'"{choice_text}"',
                 "",
                 f"Parameters: {json.dumps(params)}",
@@ -79,9 +79,16 @@ class PromptGenerator:
                 "- 'choices': a list of 2–3 options, each with:",
                 "  - 'text': string",
                 "  - 'next': null (placeholder)",
-                "  - 'effects': dictionary of parameter changes (e.g., {{\"loyalty\": 10}})",
+                "  - 'effects': dictionary of parameter changes (e.g., "
+                "{{\"loyalty\": 10}})",
+                "  - 'suggested_node_id': descriptive snake_case identifier "
+                "for the choice outcome (e.g., 'investigate_entropy', "
+                "'talk_to_mother_again')",
                 "",
-                "IMPORTANT: Use only valid JSON syntax. Numbers should be written without + prefix (e.g., use 10 not +10). Give nodes a unique and descriptive snake_case id.",
+                "IMPORTANT: Use only valid JSON syntax. Numbers should be "
+                "written without + prefix (e.g., use 10 not +10).",
+                "Make the suggested_node_id descriptive and concise, "
+                "reflecting what the choice leads to.",
                 "",
                 "Respond with valid JSON only.",
             ]
@@ -219,8 +226,10 @@ class NodeGenerator:
                     start_idx = content.find("{")
                     end_idx = content.rfind("}")
                     if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                        json_content = content[start_idx : end_idx + 1]
-                        logger.info(f"Extracted JSON content:\n{json_content}")
+                        json_content = content[start_idx:end_idx + 1]
+                        logger.info(
+                            f"Extracted JSON content:\n{json_content}"
+                        )
                         node_data = json.loads(json_content)
                     else:
                         raise

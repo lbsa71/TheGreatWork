@@ -135,6 +135,19 @@ class DialogueTree:
 
         return "\n".join(history_lines)
 
+    def generate_unique_node_id(self, suggested_id: str) -> str:
+        """
+        Generate a unique node ID based on a suggested ID, handling duplicates
+        with suffixes.
+
+        Args:
+            suggested_id: The suggested node ID from the AI
+
+        Returns:
+            A unique node ID, possibly with a numeric suffix
+        """
+        return generate_unique_node_id(suggested_id, self.nodes)
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the tree to a dictionary representation."""
         result = {"nodes": self.nodes, "params": self.params}
@@ -223,6 +236,43 @@ class DialogueTreeManager:
             raise DialogueTreeError(f"Error creating backup: {e}")
 
 
+def generate_unique_node_id(suggested_id: str, existing_nodes: Dict[str, Any]) -> str:
+    """
+    Generate a unique node ID based on a suggested ID, handling duplicates
+    with suffixes.
+
+    Args:
+        suggested_id: The suggested node ID from the AI
+        existing_nodes: Dictionary of existing nodes to check against
+
+    Returns:
+        A unique node ID, possibly with a numeric suffix
+    """
+    if not suggested_id:
+        # Fallback to generic naming if no suggestion provided
+        return f"node_{len(existing_nodes) + 1}"
+
+    # Ensure the suggested ID is in snake_case and alphanumeric
+    import re
+    clean_id = re.sub(r'[^a-zA-Z0-9_]', '_', suggested_id.lower())
+    clean_id = re.sub(r'_+', '_', clean_id).strip('_')
+
+    if not clean_id:
+        # Fallback if cleaning resulted in empty string
+        return f"node_{len(existing_nodes) + 1}"
+
+    # Check if the base ID is available
+    if clean_id not in existing_nodes:
+        return clean_id
+
+    # Find the next available suffix
+    counter = 2
+    while f"{clean_id}_{counter}" in existing_nodes:
+        counter += 1
+
+    return f"{clean_id}_{counter}"
+
+
 def validate_generated_node(node_data: Dict[str, Any]) -> bool:
     """
     Validate that a generated node has the correct structure.
@@ -268,6 +318,11 @@ def validate_generated_node(node_data: Dict[str, Any]) -> bool:
 
         # "effects" is optional but should be a dict if present
         if "effects" in choice and not isinstance(choice["effects"], dict):
+            return False
+
+        # "suggested_node_id" is optional but should be a string if present
+        if ("suggested_node_id" in choice and
+                not isinstance(choice["suggested_node_id"], str)):
             return False
 
     return True
