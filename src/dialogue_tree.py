@@ -135,6 +135,19 @@ class DialogueTree:
 
         return "\n".join(history_lines)
 
+    def generate_unique_node_id(self, suggested_id: str) -> str:
+        """
+        Generate a unique node ID based on a suggested ID, handling duplicates
+        with suffixes.
+
+        Args:
+            suggested_id: The suggested node ID from the AI
+
+        Returns:
+            A unique node ID, possibly with a numeric suffix
+        """
+        return generate_unique_node_id(suggested_id, self.nodes)
+
     def validate_and_fix_tree(self) -> None:
         """
         Validate and fix the dialogue tree structure.
@@ -247,56 +260,6 @@ class DialogueTree:
     def _remove_orphaned_nodes(self) -> None:
         """Remove nodes that are not referenced by any choice and are not meaningful roots."""
         referenced_nodes = set()
-
-        # Collect all referenced node IDs from choices
-        for node_id, node_data in self.nodes.items():
-            if node_data is None or not isinstance(node_data, dict):
-                continue
-
-            choices = node_data.get("choices", [])
-            for choice in choices:
-                if isinstance(choice, dict) and "next" in choice:
-                    next_node = choice["next"]
-                    if next_node is not None:
-                        referenced_nodes.add(next_node)
-
-        # Find unreferenced nodes
-        all_nodes = set(self.nodes.keys())
-        unreferenced_nodes = all_nodes - referenced_nodes
-
-        # Remove unreferenced nodes that are truly orphaned
-        # Keep unreferenced nodes that:
-        # 1. Are called 'start' (conventional root)
-        # 2. Have valid content and choices (potential alternate entry points)
-        orphaned_nodes = set()
-        for node_id in unreferenced_nodes:
-            node_data = self.nodes[node_id]
-
-            # Always keep 'start' node
-            if node_id == "start":
-                continue
-
-            # Keep null nodes that might be placeholders
-            if node_data is None:
-                orphaned_nodes.add(node_id)
-                continue
-
-            # Keep valid nodes with meaningful choices (including ones that end the dialogue)
-            if isinstance(node_data, dict) and "choices" in node_data:
-                choices = node_data.get("choices", [])
-                has_any_choices = len(choices) > 0
-
-                # If it has any choices at all (even ending ones), it might be a legitimate entry point
-                if has_any_choices:
-                    continue
-
-            # This node seems truly orphaned
-            orphaned_nodes.add(node_id)
-
-        # Remove the orphaned nodes
-        for node_id in orphaned_nodes:
-            logger.info(f"Removing orphaned node '{node_id}'")
-            del self.nodes[node_id]
 
         # Collect all referenced node IDs from choices
         for node_id, node_data in self.nodes.items():
@@ -467,6 +430,44 @@ class DialogueTreeManager:
             raise DialogueTreeError(f"Error creating backup: {e}")
 
 
+def generate_unique_node_id(suggested_id: str, existing_nodes: Dict[str, Any]) -> str:
+    """
+    Generate a unique node ID based on a suggested ID, handling duplicates
+    with suffixes.
+
+    Args:
+        suggested_id: The suggested node ID from the AI
+        existing_nodes: Dictionary of existing nodes to check against
+
+    Returns:
+        A unique node ID, possibly with a numeric suffix
+    """
+    if not suggested_id:
+        # Fallback to generic naming if no suggestion provided
+        return f"node_{len(existing_nodes) + 1}"
+
+    # Ensure the suggested ID is in snake_case and alphanumeric
+    import re
+
+    clean_id = re.sub(r"[^a-zA-Z0-9_]", "_", suggested_id.lower())
+    clean_id = re.sub(r"_+", "_", clean_id).strip("_")
+
+    if not clean_id:
+        # Fallback if cleaning resulted in empty string
+        return f"node_{len(existing_nodes) + 1}"
+
+    # Check if the base ID is available
+    if clean_id not in existing_nodes:
+        return clean_id
+
+    # Find the next available suffix
+    counter = 2
+    while f"{clean_id}_{counter}" in existing_nodes:
+        counter += 1
+
+    return f"{clean_id}_{counter}"
+
+
 def validate_generated_node(node_data: Dict[str, Any]) -> bool:
     """
     Validate that a generated node has the correct structure.
@@ -512,6 +513,12 @@ def validate_generated_node(node_data: Dict[str, Any]) -> bool:
 
         # "effects" is optional but should be a dict if present
         if "effects" in choice and not isinstance(choice["effects"], dict):
+            return False
+
+        # "suggested_node_id" is optional but should be a string if present
+        if "suggested_node_id" in choice and not isinstance(
+            choice["suggested_node_id"], str
+        ):
             return False
 
     return True

@@ -112,7 +112,8 @@ class DialogueAutofiller:
                     and self.nodes_generated >= self.max_nodes
                 ):
                     logger.info(
-                        f"Reached maximum node limit ({self.max_nodes}). Stopping generation."
+                        f"Reached maximum node limit ({self.max_nodes}). "
+                        "Stopping generation."
                     )
                     break
 
@@ -137,7 +138,8 @@ class DialogueAutofiller:
             # Final save
             self.tree_manager.save_tree(tree)
             logger.info(
-                f"Tree completion successful! Generated {self.nodes_generated} nodes total"
+                f"Tree completion successful! "
+                f"Generated {self.nodes_generated} nodes total"
             )
             return True
 
@@ -206,11 +208,18 @@ class DialogueAutofiller:
         # Update the tree
         tree.update_node(node_id, generated_node)
 
-        # Update choice "next" values to create new placeholder nodes
+        # Update choice "next" values to create new placeholder nodes using AI
+        # suggestions
         for choice in generated_node.get("choices", []):
-            next_node_id = f"node_{len(tree.nodes) + hash(choice['text']) % 1000}"
+            suggested_id = choice.get("suggested_node_id", "")
+            next_node_id = tree.generate_unique_node_id(suggested_id)
             choice["next"] = next_node_id
             tree.nodes[next_node_id] = None
+
+            # Clean up the suggested_node_id field from the final choice
+            # data
+            if "suggested_node_id" in choice:
+                del choice["suggested_node_id"]
 
         logger.info(f"Successfully processed node: {node_id}")
         return True

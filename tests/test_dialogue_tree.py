@@ -19,6 +19,7 @@ from src.dialogue_tree import (
     DialogueTree,
     DialogueTreeError,
     DialogueTreeManager,
+    generate_unique_node_id,
     validate_generated_node,
 )
 
@@ -483,3 +484,111 @@ class TestValidateGeneratedNode:
             ],
         }
         assert validate_generated_node(node) is True
+
+    def test_valid_suggested_node_id_optional(self) -> None:
+        """Test that suggested_node_id field is optional."""
+        node: Dict[str, Any] = {
+            "situation": "Test",
+            "choices": [
+                {"text": "No suggestion", "next": None},
+                {
+                    "text": "With suggestion",
+                    "next": None,
+                    "suggested_node_id": "test_node",
+                },
+            ],
+        }
+        assert validate_generated_node(node) is True
+
+    def test_invalid_suggested_node_id_not_string(self) -> None:
+        """Test validation when suggested_node_id is not a string."""
+        node: Dict[str, Any] = {
+            "situation": "Test",
+            "choices": [
+                {"text": "Invalid", "next": None, "suggested_node_id": 123},
+                {"text": "Valid", "next": None},
+            ],
+        }
+        assert validate_generated_node(node) is False
+
+
+class TestGenerateUniqueNodeId:
+    """Tests for generate_unique_node_id function."""
+
+    def test_basic_unique_id(self) -> None:
+        """Test generating a unique ID when no conflicts exist."""
+        existing_nodes = {"start": {}, "node1": {}}
+        result = generate_unique_node_id("investigate_entropy", existing_nodes)
+        assert result == "investigate_entropy"
+
+    def test_empty_suggestion_fallback(self) -> None:
+        """Test fallback behavior when suggestion is empty."""
+        existing_nodes = {"start": {}, "node1": {}}
+        result = generate_unique_node_id("", existing_nodes)
+        assert result == "node_3"
+
+    def test_none_suggestion_fallback(self) -> None:
+        """Test fallback behavior when suggestion is None."""
+        existing_nodes = {"start": {}, "node1": {}}
+        result = generate_unique_node_id(None, existing_nodes)
+        assert result == "node_3"
+
+    def test_duplicate_handling_simple(self) -> None:
+        """Test handling a simple duplicate."""
+        existing_nodes = {"start": {}, "investigate_entropy": {}}
+        result = generate_unique_node_id("investigate_entropy", existing_nodes)
+        assert result == "investigate_entropy_2"
+
+    def test_duplicate_handling_multiple(self) -> None:
+        """Test handling multiple duplicates."""
+        existing_nodes = {
+            "start": {},
+            "investigate_entropy": {},
+            "investigate_entropy_2": {},
+            "investigate_entropy_3": {},
+        }
+        result = generate_unique_node_id("investigate_entropy", existing_nodes)
+        assert result == "investigate_entropy_4"
+
+    def test_clean_special_characters(self) -> None:
+        """Test cleaning special characters from suggestion."""
+        existing_nodes = {"start": {}}
+        result = generate_unique_node_id("talk to mother again!", existing_nodes)
+        assert result == "talk_to_mother_again"
+
+    def test_clean_multiple_underscores(self) -> None:
+        """Test cleaning multiple consecutive underscores."""
+        existing_nodes = {"start": {}}
+        result = generate_unique_node_id("investigate___entropy", existing_nodes)
+        assert result == "investigate_entropy"
+
+    def test_clean_leading_trailing_underscores(self) -> None:
+        """Test cleaning leading and trailing underscores."""
+        existing_nodes = {"start": {}}
+        result = generate_unique_node_id("_investigate_entropy_", existing_nodes)
+        assert result == "investigate_entropy"
+
+    def test_clean_results_in_empty_string(self) -> None:
+        """Test fallback when cleaning results in empty string."""
+        existing_nodes = {"start": {}}
+        result = generate_unique_node_id("!!!", existing_nodes)
+        assert result == "node_2"
+
+
+class TestDialogueTreeGenerateUniqueNodeId:
+    """Tests for DialogueTree.generate_unique_node_id method."""
+
+    def test_generate_unique_node_id_method(self) -> None:
+        """Test the method delegates correctly to standalone function."""
+        tree = DialogueTree(
+            nodes={"start": {"situation": "test"}, "investigate_entropy": None},
+            params={"test": 1},
+        )
+        result = tree.generate_unique_node_id("investigate_entropy")
+        assert result == "investigate_entropy_2"
+
+    def test_generate_unique_node_id_new_name(self) -> None:
+        """Test generating a completely new name."""
+        tree = DialogueTree(nodes={"start": {"situation": "test"}}, params={"test": 1})
+        result = tree.generate_unique_node_id("talk_to_mother")
+        assert result == "talk_to_mother"
