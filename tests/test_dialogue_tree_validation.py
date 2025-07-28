@@ -3,7 +3,6 @@
 Tests for dialogue tree validation functionality.
 """
 
-import pytest
 from src.dialogue_tree import DialogueTree
 
 

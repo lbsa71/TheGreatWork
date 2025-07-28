@@ -243,14 +243,10 @@ class DialogueTree:
                 self.nodes[node_id] = None
 
     def _remove_orphaned_nodes(self) -> None:
-        """Remove nodes that are not referenced by any choice and are not legitimate roots."""
+        """Remove nodes that are not referenced by any choice and are not meaningful roots."""
         referenced_nodes = set()
         
-        # Find root nodes (legitimate entry points)
-        root_nodes = self._find_root_nodes()
-        referenced_nodes.update(root_nodes)
-        
-        # Collect all referenced node IDs
+        # Collect all referenced node IDs from choices
         for node_id, node_data in self.nodes.items():
             if node_data is None or not isinstance(node_data, dict):
                 continue
@@ -262,26 +258,43 @@ class DialogueTree:
                     if next_node is not None:
                         referenced_nodes.add(next_node)
         
-        # Additional logic: check if unreferenced nodes can reach any referenced nodes
-        # If they can, they might be legitimate alternate entry points
+        # Find unreferenced nodes
         all_nodes = set(self.nodes.keys())
         unreferenced_nodes = all_nodes - referenced_nodes
         
-        # For each unreferenced node, check if it can reach any referenced node
-        # If it can, it's probably a legitimate root; if not, it's orphaned
+        # Remove unreferenced nodes that are truly orphaned
+        # Keep unreferenced nodes that:
+        # 1. Are called 'start' (conventional root)
+        # 2. Have valid content and choices (potential alternate entry points)
         orphaned_nodes = set()
         for node_id in unreferenced_nodes:
-            if not self._can_reach_any_referenced_node(node_id, referenced_nodes):
+            node_data = self.nodes[node_id]
+            
+            # Always keep 'start' node
+            if node_id == "start":
+                continue
+                
+            # Keep null nodes that might be placeholders
+            if node_data is None:
                 orphaned_nodes.add(node_id)
+                continue
+                
+            # Keep valid nodes with meaningful choices (including ones that end the dialogue)
+            if isinstance(node_data, dict) and "choices" in node_data:
+                choices = node_data.get("choices", [])
+                has_any_choices = len(choices) > 0
+                
+                # If it has any choices at all (even ending ones), it might be a legitimate entry point
+                if has_any_choices:
+                    continue
+            
+            # This node seems truly orphaned
+            orphaned_nodes.add(node_id)
         
-        # Remove truly orphaned nodes
+        # Remove the orphaned nodes
         for node_id in orphaned_nodes:
             logger.info(f"Removing orphaned node '{node_id}'")
             del self.nodes[node_id]
-
-    def _remove_orphaned_nodes(self) -> None:
-        """Remove nodes that are not referenced by any choice and are not meaningful roots."""
-        referenced_nodes = set()
         
         # Collect all referenced node IDs from choices
         for node_id, node_data in self.nodes.items():
