@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialogue Tree Debugger - Web UI</title>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row main-layout-row">
+            <!-- Tree Navigation Panel -->
+            <div class="col-md-3 bg-light border-end">
+                <div class="p-3">
+                    <h5><i class="bi bi-diagram-3"></i> Tree Navigation</h5>
+                    <div class="mb-3">
+                        <button id="refreshTree" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                        <button id="saveTree" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-floppy"></i> Save
+                        </button>
+                    </div>
+                    <div id="treeStructure" class="tree-structure">
+                        <!-- Tree will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="col-md-9">
+                <div class="p-3">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-controller"></i> Dialogue Tree Player</h2>
+                        <div>
+                            <span class="badge bg-secondary" id="currentNodeId">start</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Situation History - Show the path taken to get here -->
+                    <div class="row mb-4" id="situationHistoryContainer" style="display: none;">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-signpost-2"></i> Situation History</h5>
+                                    <small class="text-muted">The choices and scenarios that led to this moment</small>
+                                </div>
+                                <div class="card-body">
+                                    <div id="situationHistory">
+                                        <!-- History will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Situation - Most Important -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-book"></i> Current Situation</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="currentSituation" class="situation-text">
+                                        Loading...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Choices - Second Most Important -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-list-check"></i> Available Choices</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="choices">
+                                        <!-- Choices will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game Parameters -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Game Parameters</h6>
+                                    <div id="gameParams" class="row">
+                                        <!-- Parameters will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation History -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6><i class="bi bi-clock-history"></i> Navigation History</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="navigationHistory">
+                                        <!-- History will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Generation Modal -->
+    <div class="modal fade" id="aiGenerationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">AI Content Generation</h5>
+                    <button type="button" class="btn-close" onclick="hideModal('aiGenerationModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <p>Generate AI content for this incomplete node?</p>
+                    <div id="generationStatus" class="d-none">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Generating...</span>
+                            </div>
+                            <p class="mt-2">Generating content with AI...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('aiGenerationModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="generateAIContent">
+                        <i class="bi bi-magic"></i> Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Simple modal and notification handling -->
+    <script>
+        // Simple modal implementation
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            document.getElementById(modalId).style.display = 'none';
+        }
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                hideModal(e.target.id);
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

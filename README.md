@@ -22,6 +22,7 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 - Python 3.8 or higher
 - [Ollama](https://ollama.ai/) installed and running
 - An Ollama model (e.g., `llama3`, `mistral`)
+- Flask (for web UI functionality)
 
 ## Quick Start
 
@@ -95,6 +96,15 @@ python autofill_dialogue.py tree.json --debug
 
 # Launch debugger starting from a specific node
 python autofill_dialogue.py tree.json --debug --start-node node1
+
+# Launch web UI
+python autofill_dialogue.py tree.json --web
+
+# Launch web UI on custom port
+python autofill_dialogue.py tree.json --web --port 8080
+
+# Launch web UI on custom host and port
+python autofill_dialogue.py tree.json --web --host 0.0.0.0 --port 8080
 
 # Show help
 python autofill_dialogue.py --help
@@ -220,10 +230,18 @@ pytest tests/ -v
 │   ├── dialogue_tree.py      # Core dialogue tree logic
 │   ├── llm_integration.py    # LLM integration and prompt generation
 │   ├── debugger.py           # Interactive dialogue tree debugger
+│   ├── web_ui.py            # Web-based dialogue tree interface
 │   └── __init__.py           # Package initialization
+├── templates/                # Web UI templates
+│   └── index.html           # Main web interface template
+├── static/                   # Web UI static files
+│   ├── css/                 # Stylesheets
+│   │   └── style.css        # Custom styles for web UI
+│   └── js/                  # JavaScript files
 ├── tests/                    # Unit tests
 │   ├── test_dialogue_tree.py
 │   ├── test_llm_integration.py
+│   ├── test_debugger.py
 │   └── test_autofill_dialogue.py
 ├── scripts/                  # Setup scripts
 │   ├── setup.sh             # Linux/macOS setup
@@ -319,6 +337,63 @@ The debugger provides a complete view of:
 
 This makes it easy to test dialogue flows, debug branching logic, and understand how choices affect the game state.
 
+## Web UI for Dialogue Tree Navigation
+
+The tool also includes a modern web-based interface for navigating and managing dialogue trees with enhanced visual features.
+
+### Features
+
+- **Visual Tree Navigation**: Browse the dialogue tree structure with an interactive interface
+- **Real-time Content Generation**: Generate AI content for incomplete nodes directly from the web interface
+- **Interactive Node Selection**: Click on nodes to view their content and make choices
+- **History Tracking**: View the dialogue path and navigation history
+- **Responsive Design**: Works on desktop and mobile devices
+- **Live Updates**: See changes to the tree structure in real-time
+
+### Usage
+
+Launch the web UI with:
+
+```bash
+python autofill_dialogue.py tree.json --web
+```
+
+Or customize the host and port:
+
+```bash
+# Use a different port
+python autofill_dialogue.py tree.json --web --port 8080
+
+# Make accessible from other devices on the network
+python autofill_dialogue.py tree.json --web --host 0.0.0.0 --port 8080
+```
+
+### Web UI Controls
+
+- **Tree Structure Panel**: Shows all nodes in the dialogue tree
+  - Green nodes: Complete nodes with content
+  - Yellow nodes: Incomplete nodes (null)
+  - Click any node to view its content
+- **Node Content Panel**: Displays the selected node's situation and choices
+- **Generate Button**: For null nodes, click to generate AI content
+- **Navigation**: Use the tree structure to navigate between nodes
+- **Save**: Automatically saves changes to the tree file
+
+### Web Interface Example
+
+The web UI provides a clean, modern interface with:
+- **Left Panel**: Tree structure showing all nodes with visual indicators
+- **Right Panel**: Current node content with situation text and available choices
+- **Status Indicators**: Visual feedback for node completion status
+- **Real-time Generation**: Generate AI content for incomplete nodes with a single click
+
+This web interface makes it easy to:
+- **Visualize** the entire dialogue tree structure
+- **Navigate** between nodes quickly and intuitively
+- **Generate** content for incomplete nodes on-demand
+- **Test** dialogue flows in a browser-based environment
+- **Share** the interface with team members for collaboration
+
 1. **Load Tree**: Reads the JSON dialogue tree file
 2. **Find Incomplete Nodes**: Identifies nodes marked as `null`
 3. **Check Limits**: Respects the `--max-nodes` limit if specified
@@ -383,6 +458,12 @@ Backup files are now automatically organized in a `/backup` folder:
 ### Tests Failing
 - Ensure all dependencies are installed: `pip install pytest pytest-cov pytest-mock`
 - Run individual test files to isolate issues
+
+### Web UI Issues
+- **Flask not found**: Install Flask with `pip install flask>=2.3.0`
+- **Port already in use**: Use a different port with `--port 8080`
+- **Cannot access from other devices**: Use `--host 0.0.0.0` to bind to all interfaces
+- **Template not found**: Ensure the `templates/` and `static/` directories exist in the project root
 
 ## Contributing
 

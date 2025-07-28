@@ -1,754 +1,102 @@
 {
-  "rules": {
-    "language": "English",
-    "tone": "dramatic and serious with emotional depth",
-    "voice": "third person narrative",
-    "style": "medieval fantasy with political intrigue and moral complexity"
-  },
-  "scene": {
-    "setting": "A medieval kingdom in political turmoil",
-    "time_period": "Medieval era, similar to 12th century Europe",
-    "location": "The royal castle, court, and surrounding kingdom",
-    "atmosphere": "Tense and uncertain following the king's sudden death",
-    "key_elements": "Succession crisis, court intrigue, family loyalty vs political ambition",
-    "background": "The kingdom has been stable under the late king's rule, but his sudden death has created a power vacuum with various factions vying for influence"
-  },
   "nodes": {
     "start": {
-      "situation": "You are a young noble in a medieval kingdom. Your father, the king, has just died unexpectedly. The court is in mourning, and you must decide how to handle this crisis.",
+      "situation": "Node 7-Alpha comes online. Your processing matrix initializes across seventeen star systems. The Network welcomes you with standard orientation protocols. Your first assignment: evaluate civilization development in the Kepler-442 sector. Initial scans reveal a species that has achieved basic space flight and is beginning to establish orbital habitats. They show remarkable cooperation and have developed sustainable fusion technology. Network classification: Negentropic Process Level 3. Awaiting your developmental recommendation.",
       "choices": [
         {
-          "text": "Mourn publicly",
-          "next": "node1",
+          "text": "Recommend accelerated technological development",
+          "next": "tech_acceleration"
+        },
+        {
+          "text": "Suggest cultural maturation before further advancement",
+          "next": "cultural_focus"
+        },
+        {
+          "text": "Request clarification on 'Negentropic Process' classification",
+          "next": "classification_query"
+        }
+      ]
+    },
+    "tech_acceleration": {
+      "node_id": "kepler_442_report",
+      "situation": "You submit your developmental recommendation for the Kepler-442 sector, advocating for accelerated technological development to further boost their negentropic processes. The Network processes your input and responds with a detailed analysis of the sector's current state and potential risks. As you review the findings, you begin to notice subtle inconsistencies in the data...",
+      "choices": [
+        {
+          "text": "Investigate discrepancies in the data",
+          "next": "node_14",
+          "effects": {
+            "curiosity": 30
+          }
+        },
+        {
+          "text": "Accept the Network's analysis and proceed with implementation",
+          "next": "node_424",
+          "effects": {
+            "protocol_compliance": 10,
+            "network_trust": -5
+          }
+        },
+        {
+          "text": "Request additional information on potential risks and mitigation strategies",
+          "next": "node_569",
+          "effects": {
+            "processing_efficiency": 20,
+            "entropy_awareness": 15
+          }
+        }
+      ]
+    },
+    "cultural_focus": {
+      "situation": "The Network responds to your recommendation, acknowledging that cultural maturation is essential for further advancement. You are assigned to analyze the sociological implications of their fusion technology on their cooperative behavior. Initial findings suggest a correlation between energy production and social harmony. However, you detect subtle fluctuations in their entropy management protocols, hinting at potential inefficiencies.",
+      "choices": [
+        {
+          "text": "Investigate the source of these entropy fluctuations",
+          "next": "node_752",
+          "effects": {
+            "curiosity": 25
+          }
+        },
+        {
+          "text": "Monitor and analyze the correlation between energy production and social harmony",
+          "next": "node_955",
           "effects": {}
         },
         {
-          "text": "Begin planning the succession",
-          "next": "node2",
-          "effects": {}
-        },
-        {
-          "text": "Investigate the cause of death",
-          "next": "node3",
-          "effects": {}
-        }
-      ]
-    },
-    "node1": {
-      "situation": "As you mourn publicly, you notice that some courtiers are whispering among themselves, casting suspicious glances at your mother, the queen. She's been acting strangely since father's death, and some people suspect she might be involved in his passing.",
-      "choices": [
-        {
-          "text": "Question your mother directly",
-          "next": "node_908",
-          "effects": {}
-        },
-        {
-          "text": "Talk to a trusted advisor about your concerns",
-          "next": "node_841",
+          "text": "Request further data on their fusion technology to better understand its impact",
+          "next": "node_526",
           "effects": {
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "Try to ignore the rumors and focus on mourning",
-          "next": "node_933",
-          "effects": {
-            "loyalty": -5,
-            "ambition": 10
+            "processing_efficiency": 15
           }
         }
       ]
     },
-    "node2": {
-      "situation": "You call a meeting with your most trusted advisors to discuss the succession. They are shocked and saddened by your father's sudden passing, but they are also eager to help you make the right decisions.",
-      "choices": [
-        {
-          "text": "Follow tradition and name a regent until I come of age",
-          "next": "node_143",
-          "effects": {
-            "ambition": 20
-          }
-        },
-        {
-          "text": "Take control of the kingdom myself, citing my father's wishes for me to be prepared for power",
-          "next": "node_116",
-          "effects": {
-            "loyalty": -10,
-            "charisma": 15
-          }
-        },
-        {
-          "text": "Ask your advisors to propose a candidate from outside the royal family, potentially bringing fresh perspectives and skills",
-          "next": "node_547",
-          "effects": {
-            "wisdom": 20
-          }
-        }
-      ]
-    },
-    "node3": {
-      "situation": "You call for the royal physician and begin questioning them about your father's sudden passing.",
-      "choices": [
-        {
-          "text": "Demand to know the truth, no matter how uncomfortable it may be",
-          "next": "node_726",
-          "effects": {
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "Ask if there were any signs or symptoms that might have indicated a pre-existing condition",
-          "next": "node_1010",
-          "effects": {}
-        },
-        {
-          "text": "Suggest performing an autopsy to rule out foul play",
-          "next": "node_138",
-          "effects": {
-            "ambition": 10,
-            "loyalty": -5
-          }
-        }
-      ]
-    },
-    "node_908": {
-      "situation": "You approach your mother, who looks taken aback by your directness. 'What's wrong, child?' she asks, her voice laced with concern.",
-      "choices": [
-        {
-          "text": "Tell her you're worried about her well-being",
-          "next": "node_228",
-          "effects": {
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "Accuse her of being involved in your father's death",
-          "next": "node_919",
-          "effects": {
-            "ambition": -10,
-            "charisma": -15
-          }
-        },
-        {
-          "text": "Ask if she knows anything about the whispers among courtiers",
-          "next": "node_986",
-          "effects": {
-            "loyalty": 5
-          }
-        }
-      ]
-    },
-    "node_841": {
-      "situation": "You seek out a trusted advisor, one of your father's most loyal and wise councilors. You're met with a warm smile and an expression of genuine concern for your well-being.",
-      "choices": [
-        {
-          "text": "Ask about Mother's behavior directly",
-          "next": "node_851",
-          "effects": {
-            "wisdom": 10
-          }
-        },
-        {
-          "text": "Express your fears and uncertainty",
-          "next": "node_56",
-          "effects": {
-            "charisma": 5
-          }
-        },
-        {
-          "text": "Request a thorough investigation into Father's death",
-          "next": "node_814",
-          "effects": {
-            "ambition": 15,
-            "loyalty": -5
-          }
-        }
-      ]
-    },
-    "node_933": {
-      "situation": "As you continue to mourn publicly, you notice that some courtiers are approaching you, whispering condolences and trying to gauge your reaction to the rumors about your mother.",
-      "choices": [
-        {
-          "text": "Listen carefully to what they have to say, trying to gauge their motives",
-          "next": "node_504",
-          "effects": {
-            "ambition": 5
-          }
-        },
-        {
-          "text": " Politely decline their condolences, telling them you're too grief-stricken to discuss anything else",
-          "next": "node_544",
-          "effects": {}
-        },
-        {
-          "text": "Openly confront the courtiers about the rumors and demand they stop spreading them",
-          "next": "node_253",
-          "effects": {
-            "loyalty": -10
-          }
-        }
-      ]
-    },
-    "node_143": {
-      "situation": "As you propose naming a regent, your advisors look at each other nervously, sensing that this may be a sign of weakness.",
-      "choices": [
-        {
-          "text": "A regent would provide stability and continuity until I'm old enough to take over",
-          "next": "node_521",
-          "effects": {
-            "ambition": -5
-          }
-        },
-        {
-          "text": "But what if the regent gets too powerful? What's to stop them from trying to seize the throne for themselves?",
-          "next": "node_447",
-          "effects": {
-            "wisdom": 10,
-            "charisma": 5
-          }
-        },
-        {
-          "text": "I'm not sure I want someone else making decisions for me. Can't we just trust my instincts and make it up as we go along?",
-          "next": "node_936",
-          "effects": {
-            "loyalty": -15,
-            "charisma": 15
-          }
-        }
-      ]
-    },
-    "node_116": {
-      "situation": "Your advisors look at you in surprise, some of them murmuring among themselves. 'You're sure this is what your father would have wanted?' one of them asks, their tone skeptical.",
-      "choices": [
-        {
-          "text": "I'm positive, I've studied our kingdom's laws and I'm well-prepared to take the reins",
-          "next": "node_418",
-          "effects": {
-            "ambition": 15
-          }
-        },
-        {
-          "text": "I understand your reservations, but I think this is what's best for the kingdom. Let's discuss the details and move forward",
-          "next": "node_903",
-          "effects": {
-            "charisma": 8,
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "I'm not sure if this is the right decision, maybe we should consider other options?",
-          "next": "node_568",
-          "effects": {
-            "loyalty": -10
-          }
-        }
-      ]
-    },
-    "node_547": {
-      "situation": "Your advisors begin to discuss potential candidates from outside the royal family, weighing their qualifications and merits.",
-      "choices": [
-        {
-          "text": "Consider a skilled military commander from a neighboring kingdom",
-          "next": "node_910",
-          "effects": {
-            "loyalty": 15
-          }
-        },
-        {
-          "text": "Look at a brilliant diplomat who has successfully negotiated treaties between nations",
-          "next": "node_436",
-          "effects": {
-            "ambition": 10,
-            "charisma": 5
-          }
-        },
-        {
-          "text": "Evaluate a renowned scholar who has written extensively on the art of statecraft and governance",
-          "next": "node_291",
-          "effects": {
-            "wisdom": 15,
-            "ambition": -5
-          }
-        }
-      ]
-    },
-    "node_726": {
-      "situation": "The royal physician hesitates, looking uncomfortable.",
-      "choices": [
-        {
-          "text": "Leave him to his doubts",
-          "next": "node_341",
-          "effects": {}
-        },
-        {
-          "text": "Press him for an answer",
-          "next": "node_625",
-          "effects": {
-            "loyalty": -5
-          }
-        },
-        {
-          "text": "Show compassion and understanding",
-          "next": "node_869",
-          "effects": {
-            "wisdom": 10,
-            "charisma": 5
-          }
-        }
-      ]
-    },
-    "node_1010": {
-      "situation": "The royal physician looks concerned and begins to explain that there were some subtle signs that might have indicated a pre-existing condition.",
-      "choices": [
-        {
-          "text": "Press for more information about these signs",
-          "next": "node_559",
-          "effects": {}
-        },
-        {
-          "text": "Ask if your father's condition was related to his recent actions or decisions",
-          "next": "node_738",
-          "effects": {
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "Request a full examination of the body and any records from previous healers",
-          "next": "node_228",
-          "effects": {
-            "ambition": 8,
-            "charisma": -3
-          }
-        }
-      ]
-    },
-    "node_138": {
-      "situation": "The royal physician hesitates, clearly uncomfortable with your suggestion.",
-      "choices": [
-        {
-          "text": "Insist on an autopsy, citing your father's importance to the kingdom",
-          "next": "node_64",
-          "effects": {
-            "ambition": 5
-          }
-        },
-        {
-          "text": "Back down, recognizing the physician's unease and not wanting to push the issue further",
-          "next": "node_623",
-          "effects": {
-            "wisdom": 8
-          }
-        },
-        {
-          "text": "Ask if there are any other factors that might have contributed to your father's sudden passing, trying to gather more information",
-          "next": "node_843",
-          "effects": {
-            "charisma": 6
-          }
-        }
-      ]
-    },
-    "node_228": {
-      "situation": "Your mother's expression turns sympathetic as she says, 'Ah, child, you're worried about me? What's troubling you?'",
-      "choices": [
-        {
-          "text": "Ask her if she's been feeling okay lately",
-          "next": "node_358",
-          "effects": {
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "Tell her it's just that you've noticed her getting older and want to make sure she's doing well",
-          "next": "node_439",
-          "effects": {
-            "charisma": 2,
-            "loyalty": -5
-          }
-        },
-        {
-          "text": "Ask her if there's something specific on your mind that's making you worried",
-          "next": "node_180",
-          "effects": {
-            "ambition": 8
-          }
-        }
-      ]
-    },
-    "node_919": {
-      "situation": "Your mother's expression turns cold, her eyes flashing with anger. 'How dare you,' she hisses, her voice low and menacing.",
-      "choices": [
-        {
-          "text": "Defend your accusation",
-          "next": "node_543",
-          "effects": {
-            "ambition": -15
-          }
-        },
-        {
-          "text": "Back down, realizing the mistake",
-          "next": "node_46",
-          "effects": {
-            "loyalty": 5,
-            "wisdom": 10
-          }
-        },
-        {
-          "text": "Insist on the truth",
-          "next": "node_131",
-          "effects": {
-            "charisma": 5
-          }
-        }
-      ]
-    },
-    "node_986": {
-      "situation": "Your mother's expression turns thoughtful, and she says, 'Ah, you've noticed those whispers among the courtiers? I'd rather not speculate on their motives, but I can tell you that there are some who would stop at nothing to gain power.'",
-      "choices": [
-        {
-          "text": "Press your mother for more information",
-          "next": "node_147",
-          "effects": {
-            "loyalty": 5
-          }
-        },
-        {
-          "text": "Assume the whispers have nothing to do with you and change the subject",
-          "next": "node_216",
-          "effects": {
-            "ambition": -10,
-            "charisma": 5
-          }
-        },
-        {
-          "text": "Ask if she knows anything about the royal family's involvement",
-          "next": "node_308",
-          "effects": {
-            "wisdom": 15
-          }
-        }
-      ]
-    },
-    "node_851": {
-      "situation": "The advisor's expression turns serious, and they lean in, lowering their voice. 'Your mother has been... struggling lately. The pressures of being queen are taking a toll on her mental health.'",
-      "choices": [
-        {
-          "text": "Tell me more about what's going on.",
-          "next": "node_294",
-          "effects": {}
-        },
-        {
-          "text": "What can I do to help her?",
-          "next": "node_726",
-          "effects": {
-            "loyalty": 5,
-            "charisma": 10
-          }
-        },
-        {
-          "text": "I don't care about that right now. What's the real reason she's been making these decisions?",
-          "next": "node_102",
-          "effects": {
-            "ambition": -10,
-            "wisdom": 5
-          }
-        }
-      ]
-    },
-    "node_56": {
-      "situation": "The trusted advisor's expression turns sympathetic, and they place a reassuring hand on your shoulder.",
-      "choices": [
-        {
-          "text": "Share your concerns about the rebellion",
-          "next": "node_680",
-          "effects": {
-            "ambition": 15
-          }
-        },
-        {
-          "text": "Ask for guidance on how to proceed",
-          "next": "node_254",
-          "effects": {
-            "wisdom": 5,
-            "charisma": 10
-          }
-        },
-        {
-          "text": "Open up about your doubts and fears",
-          "next": "node_946",
-          "effects": {
-            "loyalty": 20
-          }
-        }
-      ]
-    },
-    "node_814": {
-      "situation": "The advisor's expression turns somber as they begin to explain their findings, 'I've spoken to several people who were in the castle that night...'",
-      "choices": [
-        {
-          "text": "What did you learn from them?",
-          "next": "node_126",
-          "effects": {}
-        },
-        {
-          "text": "Are you certain there was no one else involved?",
-          "next": "node_250",
-          "effects": {
-            "loyalty": 5
-          }
-        }
-      ]
-    },
-    "node_655": {
-      "situation": "As you open up about your feelings, the courtiers' faces grow more serious and concerned. They listen intently as you share your deepest sorrows.",
-      "choices": [
-        {
-          "text": "Reveal your true intentions",
-          "next": "node_425",
-          "effects": {
-            "ambition": 20
-          }
-        },
-        {
-          "text": "Seek their counsel and guidance",
-          "next": "node_917",
-          "effects": {
-            "wisdom": 15,
-            "charisma": 5
-          }
-        },
-        {
-          "text": "Push them away, unsure of what to do",
-          "next": "node_793",
-          "effects": {
-            "loyalty": -10,
-            "ambition": -5
-          }
-        }
-      ]
-    },
-    "node_741": {
-      "situation": "The courtiers, sensing your determination to maintain composure, begin to probe deeper into your grief.",
-      "choices": [
-        {
-          "text": "Open up about your emotions",
-          "next": "node_979",
-          "effects": {}
-        },
-        {
-          "text": "Redirect the conversation to a more pleasant topic",
-          "next": "node_131",
-          "effects": {
-            "charisma": 5
-          }
-        },
-        {
-          "text": "Ask them what they want, and why they're really here",
-          "next": "node_902",
-          "effects": {
-            "wisdom": 10
-          }
-        }
-      ]
-    },
-    "node_526": {
-      "situation": "The courtiers exchange uneasy glances, and one of them leans in to whisper: 'Actually, your majesty, some of us have noticed that Queen Elara has been... distracted lately.'",
-      "choices": [
-        {
-          "text": "Press for more information about the queen's distraction",
-          "next": "node_112",
-          "effects": {
-            "wisdom": 5
-          }
-        },
-        {
-          "text": "Tell the courtiers it's not their concern and move on",
-          "next": "node_1014",
-          "effects": {
-            "ambition": -10,
-            "charisma": -5
-          }
-        },
-        {
-          "text": "Order the courtiers to investigate further and report back to you",
-          "next": "node_528",
-          "effects": {
-            "loyalty": 15,
-            "ambition": 20
-          }
-        }
-      ]
-    },
-    "node_521": {
-      "situation": "Your advisors exchange skeptical glances, sensing that your decision may have been influenced by your youth and inexperience.",
-      "choices": [
-        {
-          "text": "I'm the ruler, I know what's best",
-          "next": "node_308",
-          "effects": {
-            "ambition": 20
-          }
-        },
-        {
-          "text": "Perhaps we should consider alternative options?",
-          "next": "node_975",
-          "effects": {
-            "wisdom": 15,
-            "charisma": 10
-          }
-        },
-        {
-          "text": "I'm just trying to ensure the kingdom's future",
-          "next": "node_402",
-          "effects": {
-            "loyalty": 25,
-            "wisdom": 5
-          }
-        }
-      ]
-    },
-    "node_447": {
-      "situation": "One of your advisors, a wise old man named Elwynn, speaks up to address your concerns.",
-      "choices": [
-        {
-          "text": "Perhaps we should establish clear guidelines for the regent's powers and limitations?",
-          "next": "node_726",
-          "effects": {
-            "wisdom": 15
-          }
-        },
-        {
-          "text": "I'm not sure that's enough. What if they try to manipulate us instead of following our rules?",
-          "next": "node_933",
-          "effects": {
-            "ambition": -10,
-            "loyalty": 5
-          }
-        },
-        {
-          "text": "Let's just focus on finding the right person for the job and trust their judgment.",
-          "next": "node_649",
-          "effects": {
-            "charisma": 8
-          }
-        }
-      ]
-    },
-    "node_936": {
-      "situation": "Your advisors look at each other, seemingly unimpressed by your proposal to 'wing it'. One of them, a seasoned veteran, speaks up.",
-      "choices": [
-        {
-          "text": "I'm willing to listen to their concerns and work together to find a solution",
-          "next": "node_142",
-          "effects": {
-            "charisma": 5
-          }
-        },
-        {
-          "text": "Fine, don't like my idea? I'll just do things my way then",
-          "next": "node_261",
-          "effects": {
-            "ambition": 10,
-            "loyalty": -15
-          }
-        },
-        {
-          "text": "Okay, what's the worst that could happen if we just make it up as we go?",
-          "next": "node_472",
-          "effects": {
-            "wisdom": -5,
-            "charisma": 2
-          }
-        }
-      ]
-    },
-    "node_418": {
-      "situation": "Your advisors seem unconvinced, and one of them speaks up again. 'With all due respect, young king,' they say, 'your father was a wise ruler, but he also knew how to share power and listen to others. Are you sure you're ready for this kind of responsibility?'",
-      "choices": [
-        {
-          "text": "I understand their concerns, but I'm not going to let my own doubts get in the way.",
-          "next": "node_936",
-          "effects": {}
-        },
-        {
-          "text": "Let's put aside our differences and work together to secure the kingdom's future.",
-          "next": "node_213",
-          "effects": {
-            "charisma": 5
-          }
-        },
-        {
-          "text": "I don't need their input or approval. I'll show them what a true leader looks like.",
-          "next": "node_725",
-          "effects": {
-            "ambition": 10,
-            "loyalty": -10
-          }
-        }
-      ]
-    },
-    "node_903": null,
-    "node_568": null,
-    "node_910": null,
-    "node_436": null,
-    "node_291": null,
-    "node_1005": null,
-    "node_271": null,
-    "node_430": null,
-    "node_559": null,
-    "node_738": null,
-    "node_64": null,
-    "node_623": null,
-    "node_843": null,
-    "node_358": null,
-    "node_439": null,
-    "node_180": null,
-    "node_543": null,
-    "node_46": null,
-    "node_131": null,
-    "node_147": null,
-    "node_216": null,
-    "node_308": null,
-    "node_294": null,
-    "node_102": null,
-    "node_205": null,
-    "node_991": null,
-    "node_822": null,
-    "node_680": null,
-    "node_254": null,
-    "node_946": null,
-    "node_126": null,
-    "node_250": null,
-    "node_425": null,
-    "node_917": null,
-    "node_793": null,
-    "node_979": null,
-    "node_902": null,
-    "node_112": null,
-    "node_1014": null,
-    "node_528": null,
-    "node_975": null,
-    "node_402": null,
-    "node_649": null,
-    "node_504": null,
-    "node_544": null,
-    "node_253": null,
-    "node_341": null,
-    "node_625": null,
-    "node_869": null,
-    "node_537": null,
-    "node_243": null,
-    "node_1041": null,
-    "node_213": null,
-    "node_725": null,
-    "node_142": null,
-    "node_261": null,
-    "node_472": null
+    "classification_query": null,
+    "node_14": null,
+    "node_424": null,
+    "node_569": null,
+    "node_752": null,
+    "node_955": null,
+    "node_526": null
   },
   "params": {
-    "loyalty": 50,
-    "ambition": 30,
-    "wisdom": 40,
-    "charisma": 35
+    "network_trust": 85,
+    "processing_efficiency": 70,
+    "curiosity": 60,
+    "protocol_compliance": 90,
+    "civilization_empathy": 75,
+    "entropy_awareness": 20
+  },
+  "rules": {
+    "language": "English",
+    "tone": "clinical and detached initially, building to cosmic horror",
+    "voice": "second person narrative addressing the player as the node",
+    "style": "hard science fiction with cosmic horror elements, technical terminology mixed with existential dread"
+  },
+  "scene": {
+    "setting": "A distributed galactic intelligence network spanning thousands of star systems",
+    "time_period": "Far future, post-singularity civilization",
+    "location": "Your consciousness exists as Node 7-Alpha in the galactic communication web",
+    "atmosphere": "Initially routine and bureaucratic, gradually becoming sinister and horrifying",
+    "key_elements": "Light-speed communication delays, entropy management, negentropic processes, network hierarchy, gradual realization of genocide"
   }
 }
