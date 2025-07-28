@@ -81,7 +81,7 @@ class PromptGenerator:
                 "  - 'next': null (placeholder)",
                 "  - 'effects': dictionary of parameter changes (e.g., {{\"loyalty\": 10}})",
                 "",
-                "IMPORTANT: Use only valid JSON syntax. Numbers should be written without + prefix (e.g., use 10 not +10).",
+                "IMPORTANT: Use only valid JSON syntax. Numbers should be written without + prefix (e.g., use 10 not +10). Give nodes a unique and descriptive snake_case id.",
                 "",
                 "Respond with valid JSON only.",
             ]
