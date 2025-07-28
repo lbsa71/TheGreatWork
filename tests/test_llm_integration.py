@@ -80,7 +80,7 @@ class TestPromptGenerator:
         assert "Mourn publicly" in prompt
         assert "current parent node" in prompt
 
-    def test_generate_node_prompt_with_rules(self):
+    def test_generate_node_prompt_with_rules(self) -> None:
         """Test prompt generation with stylistic rules."""
         parent_situation = "The king is dead."
         choice_text = "Mourn publicly"
@@ -100,7 +100,7 @@ class TestPromptGenerator:
         assert "Tone: dramatic and serious" in prompt
         assert "Voice: third person narrative" in prompt
 
-    def test_generate_node_prompt_with_scene(self):
+    def test_generate_node_prompt_with_scene(self) -> None:
         """Test prompt generation with world-building context."""
         parent_situation = "The king is dead."
         choice_text = "Mourn publicly"
@@ -120,7 +120,7 @@ class TestPromptGenerator:
         assert "Time_Period: Medieval era" in prompt
         assert "Atmosphere: Tense and uncertain" in prompt
 
-    def test_generate_node_prompt_with_rules_and_scene(self):
+    def test_generate_node_prompt_with_rules_and_scene(self) -> None:
         """Test prompt generation with both rules and scene."""
         parent_situation = "The king is dead."
         choice_text = "Mourn publicly"

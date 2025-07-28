@@ -304,8 +304,6 @@ Examples:
         help="Launch interactive dialogue tree debugger",
     )
 
-
-
     parser.add_argument(
         "--start-node",
         type=str,
@@ -343,8 +341,6 @@ Examples:
         except Exception as e:
             logger.error(f"Debugger error: {e}")
             return 1
-
-
 
     logger.info("Starting Bootstrap Game Dialog Generator")
     logger.info(f"Tree file: {tree_file}")

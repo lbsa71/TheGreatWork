@@ -10,7 +10,7 @@ import logging
 import sys
 from typing import Any, Dict, List, Optional
 
-from dialogue_tree import DialogueTree
+from .dialogue_tree import DialogueTree
 
 logger = logging.getLogger(__name__)
 

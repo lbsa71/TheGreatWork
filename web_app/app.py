@@ -9,12 +9,14 @@ from the main package as a shared library.
 import logging
 import sys
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 # Add the parent directory to the path so we can import the core logic
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Flask, jsonify, render_template, request
-from src.dialogue_tree import DialogueTree, DialogueTreeManager, DialogueTreeError
+
+from src.dialogue_tree import DialogueTree, DialogueTreeError, DialogueTreeManager
 from src.llm_integration import NodeGenerator, OllamaClient
 
 logger = logging.getLogger(__name__)
@@ -54,12 +56,12 @@ class DialogueWebApp:
         """Setup Flask routes."""
 
         @self.app.route("/")
-        def index():
+        def index() -> Any:
             """Main page."""
             return render_template("index.html")
 
         @self.app.route("/api/tree")
-        def get_tree():
+        def get_tree() -> Any:
             """Get the current dialogue tree."""
             return jsonify(
                 {
@@ -71,7 +73,7 @@ class DialogueWebApp:
             )
 
         @self.app.route("/api/node/<node_id>")
-        def get_node(node_id: str):
+        def get_node(node_id: str) -> Any:
             """Get a specific node."""
             if node_id not in self.tree.nodes:
                 return jsonify({"error": "Node not found"}), 404
@@ -89,7 +91,7 @@ class DialogueWebApp:
             )
 
         @self.app.route("/api/history/<node_id>")
-        def get_dialogue_history(node_id: str):
+        def get_dialogue_history(node_id: str) -> Any:
             """Get the dialogue history leading to a specific node."""
             if node_id not in self.tree.nodes:
                 return jsonify({"error": "Node not found"}), 404
@@ -134,7 +136,7 @@ class DialogueWebApp:
             return jsonify({"history": history_steps, "target_node": node_id})
 
         @self.app.route("/api/tree/structure")
-        def get_tree_structure():
+        def get_tree_structure() -> Any:
             """Get the tree structure for navigation."""
             structure = {}
 
@@ -165,7 +167,7 @@ class DialogueWebApp:
             return jsonify(structure)
 
         @self.app.route("/api/generate/<node_id>", methods=["POST"])
-        def generate_node(node_id: str):
+        def generate_node(node_id: str) -> Any:
             """Generate content for a null node using AI."""
             if node_id not in self.tree.nodes:
                 return jsonify({"error": "Node not found"}), 404
@@ -227,7 +229,7 @@ class DialogueWebApp:
                 return jsonify({"error": str(e)}), 500
 
         @self.app.route("/api/save", methods=["POST"])
-        def save_tree():
+        def save_tree() -> Any:
             """Save the current tree to file."""
             try:
                 self.tree_manager.save_tree(self.tree)
@@ -236,7 +238,7 @@ class DialogueWebApp:
                 logger.error(f"Error saving tree: {e}")
                 return jsonify({"error": str(e)}), 500
 
-    def _find_parent_context(self, target_node_id: str):
+    def _find_parent_context(self, target_node_id: str) -> Optional[Dict[str, Any]]:
         """Find the parent context for a given node."""
         for node_id, node_data in self.tree.nodes.items():
             if node_data is not None and isinstance(node_data, dict):
@@ -252,7 +254,9 @@ class DialogueWebApp:
                         }
         return None
 
-    def run(self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False):
+    def run(
+        self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False
+    ) -> None:
         """Run the web server."""
         logger.info(f"Starting web UI on http://{host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
@@ -264,7 +268,7 @@ def run_web_app(
     host: str = "127.0.0.1",
     port: int = 5000,
     debug: bool = False,
-):
+) -> None:
     """
     Run the web application.
 
@@ -300,4 +304,4 @@ if __name__ == "__main__":
         host=args.host,
         port=args.port,
         debug=args.debug,
-    ) 
+    )

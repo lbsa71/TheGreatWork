@@ -3,6 +3,8 @@
 Tests for dialogue tree validation functionality.
 """
 
+from typing import Dict, Union
+
 from src.dialogue_tree import DialogueTree
 
 
@@ -35,7 +37,7 @@ class TestDialogueTreeValidation:
             },
             "node2": None,
         }
-        params = {"loyalty": 50, "ambition": 30}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50, "ambition": 30}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -59,7 +61,7 @@ class TestDialogueTreeValidation:
                 ],
             },
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -91,7 +93,7 @@ class TestDialogueTreeValidation:
             },
             "orphan2": None,  # Orphaned null node
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -128,7 +130,9 @@ class TestDialogueTreeValidation:
             },
             "node2": None,
         }
-        params = {"loyalty": 50}  # Missing: wisdom, ambition, charisma, reputation
+        params: Dict[str, Union[int, float]] = {
+            "loyalty": 50
+        }  # Missing: wisdom, ambition, charisma, reputation
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -170,7 +174,7 @@ class TestDialogueTreeValidation:
             "invalid_node3": "not a dict",  # Not a dictionary - orphaned
             "invalid_node4": 123,  # Not a dictionary - orphaned
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -210,7 +214,7 @@ class TestDialogueTreeValidation:
                 "unwanted": "remove this too",
             },
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -252,7 +256,7 @@ class TestDialogueTreeValidation:
             "node4": None,
             "node5": None,
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -297,7 +301,7 @@ class TestDialogueTreeValidation:
                 ],
             },
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -318,7 +322,7 @@ class TestDialogueTreeValidation:
                 ],
             },
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         tree.validate_and_fix_tree()
@@ -370,7 +374,7 @@ class TestDialogueTreeValidation:
                 "choices": [],
             },
         }
-        params = {"loyalty": 50}
+        params: Dict[str, Union[int, float]] = {"loyalty": 50}
 
         tree = DialogueTree(nodes, params)
         original_node_count = len(tree.nodes)
