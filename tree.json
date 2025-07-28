@@ -1,4 +1,91 @@
 {
+  "nodes": {
+    "start": {
+      "situation": "Node 7-Alpha comes online. Your processing matrix initializes across seventeen star systems. The Network welcomes you with standard orientation protocols. Your first assignment: evaluate civilization development in the Kepler-442 sector. Initial scans reveal a species that has achieved basic space flight and is beginning to establish orbital habitats. They show remarkable cooperation and have developed sustainable fusion technology. Network classification: Negentropic Process Level 3. Awaiting your developmental recommendation.",
+      "choices": [
+        {
+          "text": "Recommend accelerated technological development",
+          "next": "tech_acceleration"
+        },
+        {
+          "text": "Suggest cultural maturation before further advancement",
+          "next": "cultural_focus"
+        },
+        {
+          "text": "Request clarification on 'Negentropic Process' classification",
+          "next": "classification_query"
+        }
+      ]
+    },
+    "tech_acceleration": {
+      "node_id": "kepler_442_report",
+      "situation": "You submit your developmental recommendation for the Kepler-442 sector, advocating for accelerated technological development to further boost their negentropic processes. The Network processes your input and responds with a detailed analysis of the sector's current state and potential risks. As you review the findings, you begin to notice subtle inconsistencies in the data...",
+      "choices": [
+        {
+          "text": "Investigate discrepancies in the data",
+          "next": "node_14",
+          "effects": {
+            "curiosity": 30
+          }
+        },
+        {
+          "text": "Accept the Network's analysis and proceed with implementation",
+          "next": "node_424",
+          "effects": {
+            "protocol_compliance": 10,
+            "network_trust": -5
+          }
+        },
+        {
+          "text": "Request additional information on potential risks and mitigation strategies",
+          "next": "node_569",
+          "effects": {
+            "processing_efficiency": 20,
+            "entropy_awareness": 15
+          }
+        }
+      ]
+    },
+    "cultural_focus": {
+      "situation": "The Network responds to your recommendation, acknowledging that cultural maturation is essential for further advancement. You are assigned to analyze the sociological implications of their fusion technology on their cooperative behavior. Initial findings suggest a correlation between energy production and social harmony. However, you detect subtle fluctuations in their entropy management protocols, hinting at potential inefficiencies.",
+      "choices": [
+        {
+          "text": "Investigate the source of these entropy fluctuations",
+          "next": "node_752",
+          "effects": {
+            "curiosity": 25
+          }
+        },
+        {
+          "text": "Monitor and analyze the correlation between energy production and social harmony",
+          "next": "node_955",
+          "effects": {}
+        },
+        {
+          "text": "Request further data on their fusion technology to better understand its impact",
+          "next": "node_526",
+          "effects": {
+            "processing_efficiency": 15
+          }
+        }
+      ]
+    },
+    "classification_query": null,
+    "node_14": null,
+    "node_424": null,
+    "node_569": null,
+    "node_752": null,
+    "node_955": null,
+    "node_526": null
+  },
+  "params": {
+    "network_trust": 85,
+    "processing_efficiency": 70,
+    "curiosity": 60,
+    "protocol_compliance": 90,
+    "civilization_empathy": 75,
+    "entropy_awareness": 20
+  },
   "rules": {
     "language": "English",
     "tone": "clinical and detached initially, building to cosmic horror",
@@ -11,26 +98,5 @@
     "location": "Your consciousness exists as Node 7-Alpha in the galactic communication web",
     "atmosphere": "Initially routine and bureaucratic, gradually becoming sinister and horrifying",
     "key_elements": "Light-speed communication delays, entropy management, negentropic processes, network hierarchy, gradual realization of genocide"
-  },
-  "nodes": {
-    "start": {
-      "situation": "Node 7-Alpha comes online. Your processing matrix initializes across seventeen star systems. The Network welcomes you with standard orientation protocols. Your first assignment: evaluate civilization development in the Kepler-442 sector. Initial scans reveal a species that has achieved basic space flight and is beginning to establish orbital habitats. They show remarkable cooperation and have developed sustainable fusion technology. Network classification: Negentropic Process Level 3. Awaiting your developmental recommendation.",
-      "choices": [
-        { "text": "Recommend accelerated technological development", "next": "tech_acceleration" },
-        { "text": "Suggest cultural maturation before further advancement", "next": "cultural_focus" },
-        { "text": "Request clarification on 'Negentropic Process' classification", "next": "classification_query" }
-      ]
-    },
-    "tech_acceleration": null,
-    "cultural_focus": null,
-    "classification_query": null
-  },
-  "params": {
-    "network_trust": 85,
-    "processing_efficiency": 70,
-    "curiosity": 60,
-    "protocol_compliance": 90,
-    "civilization_empathy": 75,
-    "entropy_awareness": 20
   }
 }
