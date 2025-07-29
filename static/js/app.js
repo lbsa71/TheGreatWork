@@ -454,6 +454,7 @@ class DialogueTreeApp {
     
     async saveTree() {
         try {
+            console.log('Attempting to save tree...');
             const response = await fetch('/api/save', {
                 method: 'POST',
                 headers: {
@@ -461,9 +462,16 @@ class DialogueTreeApp {
                 }
             });
             
+            console.log('Save response status:', response.status);
+            
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Save response error:', errorText);
                 throw new Error('Failed to save tree');
             }
+            
+            const result = await response.json();
+            console.log('Save response result:', result);
             
             this.showSuccess('Tree saved successfully!');
             
@@ -554,9 +562,19 @@ class DialogueTreeApp {
         const choicesContainer = document.getElementById('editChoices');
         const choiceIndex = index !== null ? index : choicesContainer.children.length;
         
+        console.log('Adding choice to editor:', choiceData);
+        console.log('Effects data:', choiceData?.effects);
+        console.log('Effects JSON string:', choiceData?.effects ? JSON.stringify(choiceData.effects) : '');
+        
         const choiceDiv = document.createElement('div');
         choiceDiv.className = 'edit-choice-item';
         choiceDiv.dataset.choiceIndex = choiceIndex;
+        
+        const effectsValue = choiceData?.effects ? JSON.stringify(choiceData.effects) : '';
+        console.log('Final effects value for input:', effectsValue);
+        
+        // Properly escape the effects value for HTML
+        const escapedEffectsValue = effectsValue.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         
         choiceDiv.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -575,7 +593,7 @@ class DialogueTreeApp {
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Effects (JSON)</label>
-                    <input type="text" class="form-control choice-effects" placeholder='{"param": 5}' value="${choiceData?.effects ? JSON.stringify(choiceData.effects) : ''}" />
+                    <input type="text" class="form-control choice-effects" placeholder='{"param": 5}' value="${escapedEffectsValue}" />
                 </div>
             </div>
         `;
@@ -607,6 +625,8 @@ class DialogueTreeApp {
                 const next = item.querySelector('.choice-next').value;
                 const effectsStr = item.querySelector('.choice-effects').value;
                 
+                console.log('Processing choice:', { text, next, effectsStr });
+                
                 if (text.trim()) {
                     const choice = { text: text.trim() };
                     
@@ -616,12 +636,18 @@ class DialogueTreeApp {
                     
                     if (effectsStr.trim()) {
                         try {
-                            choice.effects = JSON.parse(effectsStr);
+                            const parsedEffects = JSON.parse(effectsStr);
+                            if (parsedEffects && typeof parsedEffects === 'object') {
+                                choice.effects = parsedEffects;
+                                console.log('Successfully parsed effects:', choice.effects);
+                            }
                         } catch (e) {
-                            throw new Error(`Invalid JSON in choice effects: ${effectsStr}`);
+                            console.warn(`Invalid JSON in choice effects: ${effectsStr}. Skipping effects.`);
+                            // Don't throw error, just skip the effects
                         }
                     }
                     
+                    console.log('Final choice object:', choice);
                     choices.push(choice);
                 }
             });

@@ -275,7 +275,28 @@ class DialogueWebApp:
         def save_tree() -> Any:
             """Save the current tree to file."""
             try:
+                logger.info(f"Saving tree to {self.tree_file}")
+                
+                # Check if file exists and get its current modification time
+                import os
+                file_exists = os.path.exists(self.tree_file)
+                if file_exists:
+                    current_mtime = os.path.getmtime(self.tree_file)
+                    logger.info(f"File exists, current modification time: {current_mtime}")
+                
                 self.tree_manager.save_tree(self.tree)
+                
+                # Verify the file was actually written
+                if os.path.exists(self.tree_file):
+                    new_mtime = os.path.getmtime(self.tree_file)
+                    logger.info(f"File saved, new modification time: {new_mtime}")
+                    if file_exists and new_mtime == current_mtime:
+                        logger.warning("File modification time unchanged - save may not have worked")
+                    else:
+                        logger.info("Tree saved successfully - file modification time updated")
+                else:
+                    logger.error("File does not exist after save attempt")
+                
                 return jsonify({"success": True})
             except Exception as e:
                 logger.error(f"Error saving tree: {e}")
