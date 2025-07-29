@@ -26,6 +26,12 @@ from src.dialogue_tree import (
     DialogueTreeManager,
     validate_generated_node,
 )
+from src.illustration import (
+    IllustrationGenerator,
+    InvokeAIClient,
+    IllustrationError,
+    should_generate_illustrations_first,
+)
 from src.llm_integration import NodeGenerator, OllamaClient
 
 # Configure logging
@@ -57,15 +63,30 @@ class DialogueAutofiller:
     """Main class for autofilling dialogue trees."""
 
     def __init__(
-        self, tree_file: Path, model: str = "qwen3:14b", max_nodes: Optional[int] = None
+        self, tree_file: Path, model: str = "qwen3:14b", max_nodes: Optional[int] = None,
+        enable_illustrations: bool = True, invokeai_url: str = "http://localhost:9090"
     ):
         self.tree_manager = DialogueTreeManager(tree_file)
         self.llm_client = OllamaClient(model)
         self.node_generator = NodeGenerator(self.llm_client)
+        
+        # Illustration components
+        self.enable_illustrations = enable_illustrations
+        self.illustration_client = InvokeAIClient(invokeai_url) if enable_illustrations else None
+        self.illustration_generator = None
+        if enable_illustrations:
+            images_dir = tree_file.parent / "images"
+            self.illustration_generator = IllustrationGenerator(self.illustration_client, images_dir)
+        
         self.nodes_generated = 0
         self.max_nodes = max_nodes
         self.generation_times = []  # Track generation times for statistics
         self.failed_nodes = []  # Track failed node IDs
+        
+        # Illustration statistics
+        self.illustrations_generated = 0
+        self.illustration_times = []
+        self.failed_illustrations = []
 
     def check_prerequisites(self) -> bool:
         """Check if all prerequisites are met before starting."""
@@ -83,12 +104,23 @@ class DialogueAutofiller:
             logger.error(f"  ollama run {self.llm_client.model}")
             return False
 
+        # Check if InvokeAI is available (if illustrations are enabled)
+        if self.enable_illustrations and self.illustration_client:
+            if not self.illustration_client.is_available():
+                logger.warning("InvokeAI API is not available - illustrations will be disabled")
+                logger.warning("To enable illustrations, ensure InvokeAI is running on localhost:9090")
+                self.enable_illustrations = False
+                self.illustration_client = None
+                self.illustration_generator = None
+            else:
+                logger.info("InvokeAI API is available - illustrations enabled")
+
         logger.info("All prerequisites met")
         return True
 
     def process_tree(self) -> bool:
         """
-        Process the dialogue tree, filling all null nodes.
+        Process the dialogue tree, filling all null nodes and generating illustrations.
 
         Returns:
             True if successful, False otherwise
@@ -104,6 +136,23 @@ class DialogueAutofiller:
 
             # Process nodes until no null nodes remain or max_nodes limit reached
             while True:
+                # Check for nodes without illustrations first (breadth-first approach)
+                if self.enable_illustrations and self.illustration_generator:
+                    nodes_without_illustrations = tree.find_nodes_without_illustrations()
+                    if nodes_without_illustrations:
+                        logger.info(f"Found {len(nodes_without_illustrations)} nodes without illustrations")
+                        
+                        # Process first node without illustration
+                        node_id = nodes_without_illustrations[0]
+                        if self._process_illustration(tree, node_id):
+                            self.illustrations_generated += 1
+                            logger.info(f"Successfully generated {self.illustrations_generated} illustrations so far")
+                        
+                        # Save after each successful illustration
+                        self.tree_manager.save_tree(tree)
+                        continue
+
+                # If all non-null nodes have illustrations, look for null nodes
                 null_node_id = tree.find_first_null_node()
                 if null_node_id is None:
                     logger.info("No more null nodes found - tree is complete!")
@@ -159,6 +208,11 @@ class DialogueAutofiller:
             logger.info(f"Generated {self.nodes_generated} nodes total")
             if self.failed_nodes:
                 logger.info(f"Skipped {len(self.failed_nodes)} failed nodes")
+            
+            if self.enable_illustrations:
+                logger.info(f"Generated {self.illustrations_generated} illustrations total")
+                if self.failed_illustrations:
+                    logger.info(f"Skipped {len(self.failed_illustrations)} failed illustrations")
             
             # Print generation statistics
             self.print_statistics()
@@ -256,9 +310,75 @@ class DialogueAutofiller:
         logger.info(f"Successfully processed node: {node_id}")
         return True
 
+    def _process_illustration(self, tree: DialogueTree, node_id: str) -> bool:
+        """
+        Process illustration generation for a node.
+        
+        Args:
+            tree: The dialogue tree
+            node_id: ID of the node to generate illustration for
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        node_data = tree.get_node(node_id)
+        if node_data is None or not isinstance(node_data, dict):
+            logger.error(f"Cannot generate illustration for null or invalid node: {node_id}")
+            return False
+            
+        if node_data.get("illustration"):
+            logger.debug(f"Node {node_id} already has illustration, skipping")
+            return True
+            
+        situation = node_data.get("situation", "")
+        if not situation:
+            logger.warning(f"Node {node_id} has no situation text for illustration")
+            return False
+            
+        logger.info(f"Generating illustration for node '{node_id}'")
+        logger.info(f"  Situation: {situation[:100]}...")
+        
+        # Time the illustration generation
+        start_time = time.time()
+        
+        try:
+            # Generate the illustration
+            illustration_path = self.illustration_generator.generate_illustration(
+                node_id=node_id,
+                situation=situation,
+                rules=tree.rules,
+                scene=tree.scene
+            )
+            
+            # Record illustration generation time
+            generation_time = time.time() - start_time
+            self.illustration_times.append(generation_time)
+            logger.info(f"Illustration generation completed in {generation_time:.2f} seconds")
+            
+            if illustration_path is None:
+                logger.error(f"Failed to generate illustration for node: {node_id}")
+                self.failed_illustrations.append(node_id)
+                return False
+                
+            # Add illustration to the node
+            if tree.add_illustration_to_node(node_id, illustration_path):
+                logger.info(f"Successfully added illustration to node: {node_id}")
+                return True
+            else:
+                logger.error(f"Failed to add illustration to node: {node_id}")
+                self.failed_illustrations.append(node_id)
+                return False
+                
+        except Exception as e:
+            generation_time = time.time() - start_time
+            self.illustration_times.append(generation_time)
+            logger.error(f"Error generating illustration for node {node_id}: {e}")
+            self.failed_illustrations.append(node_id)
+            return False
+
     def print_statistics(self) -> None:
         """Print generation statistics."""
-        if not self.generation_times and not self.failed_nodes:
+        if not self.generation_times and not self.failed_nodes and not self.illustration_times and not self.failed_illustrations:
             logger.info("No generation statistics available (no nodes were processed)")
             return
 
@@ -266,6 +386,7 @@ class DialogueAutofiller:
         logger.info("GENERATION STATISTICS")
         logger.info("=" * 60)
         
+        # Text generation statistics
         if self.generation_times:
             total_time = sum(self.generation_times)
             mean_time = total_time / len(self.generation_times)
@@ -273,10 +394,10 @@ class DialogueAutofiller:
             max_time = max(self.generation_times)
             
             logger.info(f"Total nodes generated: {len(self.generation_times)}")
-            logger.info(f"Total generation time: {total_time:.2f} seconds")
-            logger.info(f"Mean generation time: {mean_time:.2f} seconds")
-            logger.info(f"Fastest generation: {min_time:.2f} seconds")
-            logger.info(f"Slowest generation: {max_time:.2f} seconds")
+            logger.info(f"Total text generation time: {total_time:.2f} seconds")
+            logger.info(f"Mean text generation time: {mean_time:.2f} seconds")
+            logger.info(f"Fastest text generation: {min_time:.2f} seconds")
+            logger.info(f"Slowest text generation: {max_time:.2f} seconds")
             logger.info(f"Average nodes per minute: {60 / mean_time:.1f}")
         else:
             logger.info("Total nodes generated: 0")
@@ -286,6 +407,33 @@ class DialogueAutofiller:
             logger.info(f"Failed node IDs: {', '.join(self.failed_nodes)}")
         else:
             logger.info("Failed nodes: 0")
+        
+        # Illustration generation statistics
+        if self.enable_illustrations:
+            logger.info("-" * 40)
+            logger.info("ILLUSTRATION STATISTICS")
+            logger.info("-" * 40)
+            
+            if self.illustration_times:
+                total_illustration_time = sum(self.illustration_times)
+                mean_illustration_time = total_illustration_time / len(self.illustration_times)
+                min_illustration_time = min(self.illustration_times)
+                max_illustration_time = max(self.illustration_times)
+                
+                logger.info(f"Total illustrations generated: {len(self.illustration_times)}")
+                logger.info(f"Total illustration generation time: {total_illustration_time:.2f} seconds")
+                logger.info(f"Mean illustration generation time: {mean_illustration_time:.2f} seconds")
+                logger.info(f"Fastest illustration generation: {min_illustration_time:.2f} seconds")
+                logger.info(f"Slowest illustration generation: {max_illustration_time:.2f} seconds")
+                logger.info(f"Average illustrations per minute: {60 / mean_illustration_time:.1f}")
+            else:
+                logger.info("Total illustrations generated: 0")
+            
+            if self.failed_illustrations:
+                logger.info(f"Failed illustrations: {len(self.failed_illustrations)}")
+                logger.info(f"Failed illustration node IDs: {', '.join(self.failed_illustrations)}")
+            else:
+                logger.info("Failed illustrations: 0")
             
         logger.info("=" * 60)
 
@@ -384,6 +532,18 @@ Examples:
         help="Starting node ID for debugger (default: auto-detect root)",
     )
 
+    parser.add_argument(
+        "--disable-illustrations",
+        action="store_true",
+        help="Disable illustration generation",
+    )
+
+    parser.add_argument(
+        "--invokeai-url",
+        default="http://localhost:9090",
+        help="InvokeAI API URL (default: http://localhost:9090)",
+    )
+
     args = parser.parse_args()
 
     setup_logging(args.verbose)
@@ -419,9 +579,18 @@ Examples:
     logger.info("Starting Bootstrap Game Dialog Generator")
     logger.info(f"Tree file: {tree_file}")
     logger.info(f"Model: {args.model}")
+    logger.info(f"Illustrations: {'disabled' if args.disable_illustrations else 'enabled'}")
+    if not args.disable_illustrations:
+        logger.info(f"InvokeAI URL: {args.invokeai_url}")
 
     # Create autofiller
-    autofiller = DialogueAutofiller(tree_file, args.model, args.max_nodes)
+    autofiller = DialogueAutofiller(
+        tree_file, 
+        args.model, 
+        args.max_nodes,
+        enable_illustrations=not args.disable_illustrations,
+        invokeai_url=args.invokeai_url
+    )
 
     # Check prerequisites
     if not autofiller.check_prerequisites():

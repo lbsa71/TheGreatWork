@@ -9,6 +9,7 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 ## Features
 
 - **Autonomous Generation**: Automatically fills incomplete dialogue nodes
+- **Situation Illustrations**: Generates visual illustrations for dialogue nodes using InvokeAI
 - **Local LLM Integration**: Uses Ollama for privacy and offline operation
 - **Controlled Generation**: Limit the number of nodes generated with `--max-nodes`
 - **Comprehensive Testing**: Fully unit tested with mocked dependencies
@@ -23,6 +24,11 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 - Python 3.8 or higher
 - [Ollama](https://ollama.ai/) installed and running
 - An Ollama model (e.g., `qwen3:14b`, `llama3`, `mistral`)
+
+### Optional Requirements
+- [InvokeAI](https://invoke-ai.github.io/InvokeAI/) for illustration generation
+  - Install and run InvokeAI on localhost:9090 (default)
+  - Illustrations will be disabled if InvokeAI is not available
 
 ### Web Application Requirements (Optional)
 - Flask (only needed for web interface)
@@ -110,6 +116,12 @@ python autofill_dialogue.py tree.json --max-nodes 10
 # Create a sample tree file
 python autofill_dialogue.py --create-sample my_tree.json
 
+# Disable illustrations (if you don't have InvokeAI)
+python autofill_dialogue.py tree.json --disable-illustrations
+
+# Use custom InvokeAI URL
+python autofill_dialogue.py tree.json --invokeai-url http://192.168.1.100:9090
+
 # Launch interactive debugger
 python autofill_dialogue.py tree.json --debug
 
@@ -143,6 +155,73 @@ python web_app/app.py tree.json
 # Run with custom settings
 python web_app/app.py tree.json --model qwen3:14b --host 0.0.0.0 --port 8080 --debug
 ```
+
+## Illustration Generation
+
+This tool includes automated illustration generation for dialogue nodes using InvokeAI.
+
+### Features
+
+- **Automatic Visual Content**: Generates illustrations for dialogue nodes using AI image generation
+- **Breadth-First Prioritization**: Prioritizes nodes without illustrations before generating new text nodes
+- **Intelligent Prompting**: Combines situation text with style, tone, setting, and atmosphere for rich prompts
+- **Organized Storage**: Saves images in structured `/images/{node_id}/` directories
+- **Flexible Configuration**: Supports custom InvokeAI servers and can be disabled if needed
+
+### Setup
+
+1. **Install InvokeAI**: Follow the [InvokeAI installation guide](https://invoke-ai.github.io/InvokeAI/)
+2. **Start InvokeAI**: Run InvokeAI and ensure it's accessible on localhost:9090 (default)
+3. **Run with illustrations**: The tool automatically detects InvokeAI and enables illustrations
+
+### Usage
+
+```bash
+# Standard usage with illustrations enabled
+python autofill_dialogue.py tree.json
+
+# Disable illustrations
+python autofill_dialogue.py tree.json --disable-illustrations
+
+# Use custom InvokeAI server
+python autofill_dialogue.py tree.json --invokeai-url http://your-server:9090
+```
+
+### How It Works
+
+1. **Priority System**: The tool uses breadth-first search to find nodes without illustrations
+2. **Intelligent Prompting**: Builds comprehensive prompts using:
+   - Hardcoded quality enhancers: "photorealistic, insane detail, masterpiece, best quality"
+   - Scene information: setting, time period, atmosphere
+   - Style and tone from dialogue rules
+   - Node situation text
+3. **Parallel Processing**: Generates both text and illustrations for null nodes
+4. **Storage**: Images are saved to `/images/{node_id}/{node_id}.png` with relative paths stored in node data
+
+### Generated Content Structure
+
+Nodes with illustrations will include an `illustration` property:
+
+```json
+{
+  "situation": "You decide to mourn the king publicly...",
+  "illustration": "images/node1/node1.png",
+  "choices": [
+    {
+      "text": "Organize a grand funeral",
+      "next": "node2"
+    }
+  ]
+}
+```
+
+### Statistics
+
+The tool tracks illustration generation statistics including:
+- Total illustrations generated
+- Generation times (mean, min, max)
+- Failed illustration attempts
+- Images per minute throughput
 
 The web application provides:
 - Interactive tree visualization
@@ -271,6 +350,7 @@ pytest tests/ -v
 ├── src/                      # Source code
 │   ├── dialogue_tree.py      # Core dialogue tree logic
 │   ├── llm_integration.py    # LLM integration and prompt generation
+│   ├── illustration.py       # InvokeAI integration and image generation
 │   ├── debugger.py           # Interactive dialogue tree debugger
 │   ├── web_ui.py            # Web-based dialogue tree interface
 │   └── __init__.py           # Package initialization
@@ -283,6 +363,7 @@ pytest tests/ -v
 ├── tests/                    # Unit tests
 │   ├── test_dialogue_tree.py
 │   ├── test_llm_integration.py
+│   ├── test_illustration.py   # Illustration tests
 │   ├── test_debugger.py
 │   └── test_autofill_dialogue.py
 ├── scripts/                  # Setup scripts
@@ -290,6 +371,9 @@ pytest tests/ -v
 │   └── setup.ps1            # Windows setup
 ├── backup/                   # Backup files (auto-created)
 │   └── tree_backup_*.json   # Timestamped backups
+├── images/                   # Generated illustrations (auto-created)
+│   └── {node_id}/           # Node-specific image directories
+│       └── {node_id}.png    # Generated illustration files
 ├── .github/workflows/        # CI/CD workflows
 │   └── ci.yml               # GitHub Actions CI
 ├── autofill_dialogue.py     # Main script
@@ -437,15 +521,17 @@ This web interface makes it easy to:
 - **Share** the interface with team members for collaboration
 
 1. **Load Tree**: Reads the JSON dialogue tree file
-2. **Find Incomplete Nodes**: Identifies nodes marked as `null`
-3. **Check Limits**: Respects the `--max-nodes` limit if specified
-4. **Generate Context**: Finds the parent node and choice that leads to the incomplete node
-5. **Create Prompt**: Builds a detailed prompt for the LLM including context and game parameters
-6. **Generate Content**: Uses Ollama to generate new dialogue content with debug output
-7. **Validate**: Ensures the generated content follows the expected format
-8. **Update Tree**: Replaces the `null` node with generated content
-9. **Save & Backup**: Saves the updated tree and creates a timestamped backup in `/backup` folder
-10. **Repeat**: Continues until no `null` nodes remain or the node limit is reached
+2. **Prioritize Illustrations**: Uses breadth-first search to find nodes without illustrations (if enabled)
+3. **Find Incomplete Nodes**: Identifies nodes marked as `null`
+4. **Check Limits**: Respects the `--max-nodes` limit if specified
+5. **Generate Context**: Finds the parent node and choice that leads to the incomplete node
+6. **Create Prompt**: Builds a detailed prompt for the LLM including context and game parameters
+7. **Generate Content**: Uses Ollama to generate new dialogue content with debug output
+8. **Generate Illustrations**: Creates visual illustrations using InvokeAI (if enabled)
+9. **Validate**: Ensures the generated content follows the expected format
+10. **Update Tree**: Replaces the `null` node with generated content and illustration paths
+11. **Save & Backup**: Saves the updated tree and creates a timestamped backup in `/backup` folder
+12. **Repeat**: Continues until no `null` nodes remain or the node limit is reached
 
 ## New Features
 
@@ -487,6 +573,7 @@ The application now tracks and displays generation performance statistics:
 - **Fastest/Slowest generation**: Performance extremes
 - **Nodes per minute**: Throughput metric
 - **Failed nodes tracking**: Count and list of nodes that failed generation
+- **Illustration statistics**: Separate tracking for image generation performance
 - **Statistics output**: Displayed on application exit (success or failure)
 
 Example output:
@@ -495,13 +582,22 @@ Example output:
 GENERATION STATISTICS
 ============================================================
 Total nodes generated: 15
-Total generation time: 45.23 seconds
-Mean generation time: 3.02 seconds
-Fastest generation: 1.85 seconds
-Slowest generation: 5.67 seconds
+Total text generation time: 45.23 seconds
+Mean text generation time: 3.02 seconds
+Fastest text generation: 1.85 seconds
+Slowest text generation: 5.67 seconds
 Average nodes per minute: 19.9
-Failed nodes: 2
-Failed node IDs: node1, node2
+Failed nodes: 0
+----------------------------------------
+ILLUSTRATION STATISTICS
+----------------------------------------
+Total illustrations generated: 12
+Total illustration generation time: 124.56 seconds
+Mean illustration generation time: 10.38 seconds
+Fastest illustration generation: 8.12 seconds
+Slowest illustration generation: 15.24 seconds
+Average illustrations per minute: 5.8
+Failed illustrations: 0
 ============================================================
 ```
 
@@ -545,6 +641,14 @@ The application now handles generation failures gracefully:
 - **Port already in use**: Use a different port with `--port 8080`
 - **Cannot access from other devices**: Use `--host 0.0.0.0` to bind to all interfaces
 - **Template not found**: Ensure the `templates/` and `static/` directories exist in the project root
+
+### Illustration Issues
+- **InvokeAI not found**: Install InvokeAI and ensure it's running on localhost:9090
+- **Illustrations disabled**: Check InvokeAI server status and connection
+- **Image generation fails**: Check InvokeAI logs and API response format
+- **Missing images directory**: The tool creates `/images` directory automatically
+- **Custom InvokeAI URL**: Use `--invokeai-url` to specify alternative server location
+- **Disable illustrations**: Use `--disable-illustrations` if you don't want image generation
 
 ## Contributing
 

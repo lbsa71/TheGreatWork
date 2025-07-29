@@ -63,6 +63,49 @@ class DialogueTree:
                 continue
         return None
 
+    def find_nodes_without_illustrations(self) -> List[str]:
+        """
+        Find nodes that don't have illustrations.
+        
+        Returns:
+            List of node IDs without illustrations
+        """
+        nodes_without_illustrations = []
+        
+        for node_id, node_data in self.nodes.items():
+            if node_data is None:
+                continue
+                
+            # Skip failed nodes
+            if isinstance(node_data, dict) and node_data.get("__failed__"):
+                continue
+                
+            # Check if node has illustration
+            if isinstance(node_data, dict) and not node_data.get("illustration"):
+                nodes_without_illustrations.append(node_id)
+        
+        return nodes_without_illustrations
+
+    def add_illustration_to_node(self, node_id: str, illustration_path: str) -> bool:
+        """
+        Add an illustration path to a node.
+        
+        Args:
+            node_id: ID of the node to update
+            illustration_path: Relative path to the illustration image
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        node_data = self.get_node(node_id)
+        if node_data is None or not isinstance(node_data, dict):
+            logger.warning(f"Cannot add illustration to null or invalid node: {node_id}")
+            return False
+            
+        node_data["illustration"] = illustration_path
+        logger.info(f"Added illustration to node {node_id}: {illustration_path}")
+        return True
+
     def find_parent_and_choice(
         self, target_node_id: str
     ) -> Optional[Tuple[str, Dict[str, Any]]]:

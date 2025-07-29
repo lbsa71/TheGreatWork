@@ -118,6 +118,43 @@ class TestDialogueTree:
         result = self.tree.find_first_null_node()
         assert result is None
 
+    def test_find_nodes_without_illustrations(self) -> None:
+        """Test finding nodes without illustrations."""
+        # Initially, no nodes have illustrations
+        result = self.tree.find_nodes_without_illustrations()
+        # Should include start and node3 (non-null nodes without illustrations)
+        assert set(result) == {"start", "node3"}
+
+    def test_find_nodes_without_illustrations_some_have(self) -> None:
+        """Test finding nodes when some have illustrations."""
+        self.tree.nodes["start"]["illustration"] = "start.png"
+        result = self.tree.find_nodes_without_illustrations()
+        assert result == ["node3"]  # Only node3 should be returned
+
+    def test_find_nodes_without_illustrations_all_have(self) -> None:
+        """Test finding nodes when all have illustrations."""
+        self.tree.nodes["start"]["illustration"] = "start.png"
+        self.tree.nodes["node3"]["illustration"] = "node3.png"
+        result = self.tree.find_nodes_without_illustrations()
+        assert result == []
+
+    def test_add_illustration_to_node_success(self) -> None:
+        """Test successfully adding illustration to node."""
+        result = self.tree.add_illustration_to_node("start", "images/start/start.png")
+        assert result is True
+        assert self.tree.nodes["start"]["illustration"] == "images/start/start.png"
+
+    def test_add_illustration_to_node_null_node(self) -> None:
+        """Test adding illustration to null node."""
+        result = self.tree.add_illustration_to_node("node1", "images/node1/node1.png")
+        assert result is False
+
+    def test_add_illustration_to_node_invalid_node(self) -> None:
+        """Test adding illustration to invalid node."""
+        self.tree.nodes["invalid"] = "not a dict"
+        result = self.tree.add_illustration_to_node("invalid", "path.png")
+        assert result is False
+
     def test_find_parent_and_choice(self) -> None:
         """Test finding parent node and choice."""
         result = self.tree.find_parent_and_choice("node1")
