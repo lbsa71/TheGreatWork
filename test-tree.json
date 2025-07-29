@@ -1,0 +1,239 @@
+{
+  "nodes": {
+    "start": {
+      "situation": "You find yourself standing at a crossroads in a mystical forest. The path ahead splits in two directions - one leads deeper into the dark woods where strange lights flicker between the trees, the other leads toward a distant mountain peak shrouded in mist.",
+      "choices": [
+        {
+          "text": "Take the path into the dark woods",
+          "next": "dark_woods",
+          "effects": {
+            "courage": -5,
+            "mystery": 10
+          }
+        },
+        {
+          "text": "Head toward the mountain peak",
+          "next": "mountain_path",
+          "effects": {
+            "courage": 5,
+            "endurance": 10
+          }
+        },
+        {
+          "text": "Rest at the crossroads and think",
+          "next": "rest_and_think",
+          "effects": {
+            "wisdom": 15
+          }
+        }
+      ]
+    },
+    "dark_woods": {
+      "situation": "The forest grows darker as you venture deeper. Strange whispers echo through the trees, and you catch glimpses of glowing eyes watching you from the shadows. You come upon an ancient stone circle with runes carved into the ground, pulsing with an eerie blue light.",
+      "choices": [
+        {
+          "text": "Approach the stone circle and examine the runes",
+          "next": "examine_runes",
+          "effects": {
+            "mystery": 20,
+            "knowledge": 10
+          }
+        },
+        {
+          "text": "Turn back and return to the crossroads",
+          "next": "start",
+          "effects": {
+            "courage": -10,
+            "safety": 5
+          }
+        }
+      ]
+    },
+    "mountain_path": {
+      "situation": "The mountain path is steep and challenging. As you climb higher, the air grows thin but the view becomes breathtaking. You reach a plateau where an old hermit sits by a small fire, brewing tea from mountain herbs.",
+      "choices": [
+        {
+          "text": "Approach the hermit and ask for wisdom",
+          "next": "hermit_wisdom",
+          "effects": {
+            "wisdom": 25,
+            "social": 5
+          }
+        },
+        {
+          "text": "Continue climbing toward the peak",
+          "next": "mountain_peak",
+          "effects": {
+            "endurance": 15,
+            "determination": 10
+          }
+        },
+        {
+          "text": "Rest and enjoy the view",
+          "next": "mountain_rest",
+          "effects": {
+            "peace": 20,
+            "endurance": 5
+          }
+        }
+      ]
+    },
+    "rest_and_think": {
+      "situation": "You sit down on a moss-covered log and take time to consider your options. As you think, you notice details you missed before: animal tracks leading in different directions, the sound of distant water, and carved symbols on some of the trees around the crossroads.",
+      "choices": [
+        {
+          "text": "Follow the animal tracks",
+          "next": "animal_tracks",
+          "effects": {
+            "nature": 15,
+            "tracking": 10
+          }
+        },
+        {
+          "text": "Investigate the carved symbols",
+          "next": "tree_symbols",
+          "effects": {
+            "knowledge": 20,
+            "mystery": 5
+          }
+        },
+        {
+          "text": "Head toward the sound of water",
+          "next": "water_source",
+          "effects": {
+            "survival": 10,
+            "discovery": 15
+          }
+        }
+      ]
+    },
+    "examine_runes": {
+      "situation": "As you study the ancient runes, they begin to glow brighter. Suddenly, you understand their meaning - they tell the story of an ancient civilization that mastered the balance between light and shadow. The knowledge fills your mind with profound insights about the nature of the world.",
+      "choices": [
+        {
+          "text": "Absorb the ancient wisdom fully",
+          "next": "ancient_wisdom",
+          "effects": {
+            "wisdom": 50,
+            "mystery": 30,
+            "power": 25
+          }
+        }
+      ]
+    },
+    "hermit_wisdom": {
+      "situation": "The hermit looks up with twinkling eyes and offers you tea. 'The mountain teaches patience,' he says, 'but the valley teaches humility. Both lessons are needed for a complete journey.' His words resonate deeply, and you feel a shift in your understanding of the world.",
+      "choices": [
+        {
+          "text": "Thank the hermit and descend the mountain with new wisdom",
+          "next": "enlightened_return",
+          "effects": {
+            "wisdom": 40,
+            "humility": 20,
+            "peace": 15
+          }
+        }
+      ]
+    },
+    "mountain_peak": {
+      "situation": "You reach the summit just as the sun begins to set. The view is magnificent - you can see the entire forest spread out below, with its hidden paths and secret places now visible from this vantage point. You feel a sense of accomplishment and clarity about your journey.",
+      "choices": [
+        {
+          "text": "Reflect on your journey and plan your next adventure",
+          "next": "summit_reflection",
+          "effects": {
+            "wisdom": 30,
+            "achievement": 50,
+            "clarity": 25
+          }
+        }
+      ]
+    },
+    "ancient_wisdom": {
+      "situation": "The ancient knowledge transforms your understanding completely. You now see the world as it truly is - a delicate balance of forces, where every choice creates ripples that affect the whole. You have become a guardian of this sacred knowledge.",
+      "choices": []
+    },
+    "enlightened_return": {
+      "situation": "You return to the valley with the hermit's wisdom echoing in your heart. Every step feels lighter, every breath deeper. You understand now that the true journey was not about reaching a destination, but about becoming who you were meant to be.",
+      "choices": []
+    },
+    "summit_reflection": {
+      "situation": "From the mountain peak, you can see endless possibilities stretching out before you. The journey to reach this point has changed you, and you know that whatever path you choose next, you will walk it with confidence and purpose.",
+      "choices": []
+    },
+    "animal_tracks": {
+      "situation": "Following the tracks leads you to a hidden grove where deer graze peacefully. They look up at you without fear, as if recognizing a kindred spirit. One of them approaches and seems to beckon you to follow deeper into the forest.",
+      "choices": [
+        {
+          "text": "Follow the deer deeper into the forest",
+          "next": "deer_guide",
+          "effects": {
+            "nature": 30,
+            "harmony": 20
+          }
+        }
+      ]
+    },
+    "tree_symbols": {
+      "situation": "The symbols tell a story of travelers who came before you, each leaving their mark to guide future wanderers. As you trace the carvings with your finger, you feel connected to all those who have stood at this crossroads and made their choice.",
+      "choices": [
+        {
+          "text": "Add your own symbol to the tree",
+          "next": "leave_mark",
+          "effects": {
+            "legacy": 25,
+            "connection": 20
+          }
+        }
+      ]
+    },
+    "water_source": {
+      "situation": "You discover a crystal-clear spring hidden among the rocks. The water is pure and refreshing, and as you drink, you feel revitalized. Ancient coins and small offerings from other travelers rest at the bottom of the spring, making this a sacred place.",
+      "choices": [
+        {
+          "text": "Make an offering and continue your journey",
+          "next": "blessed_journey",
+          "effects": {
+            "blessing": 30,
+            "respect": 15,
+            "energy": 20
+          }
+        }
+      ]
+    },
+    "deer_guide": {
+      "situation": "The deer leads you to a secret sanctuary where all the forest creatures live in harmony. You realize you have been chosen to become a protector of this magical place, where the boundary between the natural and supernatural worlds is thin.",
+      "choices": []
+    },
+    "leave_mark": {
+      "situation": "Your symbol joins the others on the ancient tree - a sign that you too have become part of the story of this place. Future travelers will see it and know that someone like them once stood here, faced with the same choices, and found their way forward.",
+      "choices": []
+    },
+    "blessed_journey": {
+      "situation": "With the spring's blessing, you feel ready for whatever lies ahead. The sacred water has cleansed not just your body but your spirit, preparing you for the adventures that await beyond the crossroads.",
+      "choices": []
+    }
+  },
+  "params": {
+    "courage": 50,
+    "wisdom": 25,
+    "mystery": 0,
+    "endurance": 40,
+    "knowledge": 20,
+    "nature": 15,
+    "peace": 30
+  },
+  "rules": {
+    "language": "English",
+    "tone": "mystical and contemplative",
+    "voice": "second person narrative",
+    "style": "fantasy adventure with philosophical themes"
+  },
+  "scene": {
+    "setting": "A mystical forest with ancient magic",
+    "time_period": "Timeless fantasy realm",
+    "location": "The Crossroads of Destiny",
+    "atmosphere": "Mysterious and welcoming",
+    "key_elements": "Choice, wisdom, nature, ancient knowledge"
+  }
+}
