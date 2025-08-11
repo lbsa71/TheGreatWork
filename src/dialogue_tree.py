@@ -10,7 +10,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Set
 
 logger = logging.getLogger(__name__)
 
@@ -393,14 +393,80 @@ class DialogueTree:
         """
         try:
             from .image_generation import DialogueTreeIllustrationGenerator, StableDiffusionXLGenerator
+            
+            # Create a temporary generator just for the BFS logic
+            temp_generator = StableDiffusionXLGenerator()
+            illustration_gen = DialogueTreeIllustrationGenerator(temp_generator)
+            return illustration_gen.find_nodes_without_illustrations(self.nodes)
         except ImportError:
             logger.warning("Image generation module not available")
             return []
+        except Exception as e:
+            logger.warning(f"Could not initialize image generation: {e}")
+            # Fallback: simple BFS without illustration generator
+            return self._simple_bfs_without_illustrations()
 
-        # Create a temporary generator just for the BFS logic
-        temp_generator = StableDiffusionXLGenerator()
-        illustration_gen = DialogueTreeIllustrationGenerator(temp_generator)
-        return illustration_gen.find_nodes_without_illustrations(self.nodes)
+    def _simple_bfs_without_illustrations(self) -> List[str]:
+        """
+        Simple BFS implementation to find nodes without illustrations.
+        Used as fallback when image generation dependencies are not available.
+        """
+        from collections import deque
+
+        if not self.nodes:
+            return []
+
+        nodes_without_illustrations = []
+        queue = deque()
+        visited: Set[str] = set()
+
+        # Find root nodes (nodes not referenced by others)
+        referenced_nodes = set()
+        for node_data in self.nodes.values():
+            if isinstance(node_data, dict) and "choices" in node_data:
+                for choice in node_data["choices"]:
+                    if choice.get("next"):
+                        referenced_nodes.add(choice["next"])
+
+        # Start BFS from root nodes
+        for node_id in self.nodes.keys():
+            if node_id not in referenced_nodes:  # This is a root node
+                queue.append(node_id)
+
+        # If no clear root found, start with 'start' or first node
+        if not queue:
+            if "start" in self.nodes:
+                queue.append("start")
+            elif self.nodes:
+                queue.append(next(iter(self.nodes)))
+
+        # Perform BFS
+        while queue:
+            current_id = queue.popleft()
+            
+            if current_id in visited:
+                continue
+                
+            visited.add(current_id)
+            current_node = self.nodes.get(current_id)
+
+            # Skip null nodes
+            if current_node is None:
+                continue
+
+            # Check if node needs illustration
+            if isinstance(current_node, dict):
+                if not current_node.get("illustration"):
+                    nodes_without_illustrations.append(current_id)
+
+                # Add child nodes to queue
+                if "choices" in current_node:
+                    for choice in current_node["choices"]:
+                        next_node_id = choice.get("next")
+                        if next_node_id and next_node_id not in visited:
+                            queue.append(next_node_id)
+
+        return nodes_without_illustrations
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the tree to a dictionary representation."""

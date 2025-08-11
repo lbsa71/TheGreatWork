@@ -114,7 +114,7 @@ class StableDiffusionXLGenerator:
         self,
         model_id: str = "stabilityai/stable-diffusion-xl-base-1.0",
         device: str = "cuda",
-        torch_dtype: torch.dtype = torch.float16,
+        torch_dtype: Any = None,  # Will be set to torch.float16 if available
         variant: str = "fp16",
         use_safetensors: bool = True,
         enable_xformers: bool = True,
@@ -129,7 +129,7 @@ class StableDiffusionXLGenerator:
 
         self.model_id = model_id
         self.device = device
-        self.torch_dtype = torch_dtype
+        self.torch_dtype = torch_dtype or torch.float16
         self.variant = variant
         self.use_safetensors = use_safetensors
         self.enable_xformers = enable_xformers
@@ -225,8 +225,8 @@ class StableDiffusionXLGenerator:
         num_inference_steps: int = 25,
         guidance_scale: float = 7.5,
         num_images_per_prompt: int = 1,
-        generator: Optional[torch.Generator] = None,
-    ) -> Tuple[List[Image.Image], Dict[str, Any]]:
+        generator: Optional[Any] = None,  # torch.Generator when available
+    ) -> Tuple[List[Any], Dict[str, Any]]:  # Use Any instead of Image.Image
         """
         Generate images using the SDXL pipeline.
 
@@ -315,7 +315,7 @@ class StableDiffusionXLGenerator:
             logger.error(f"Image generation failed: {e}")
             raise ImageGenerationError(f"Failed to generate image: {e}")
 
-    def upscale_image(self, image: Image.Image) -> Optional[Image.Image]:
+    def upscale_image(self, image: Any) -> Optional[Any]:  # Use Any instead of Image.Image
         """
         Upscale an image using Real-ESRGAN.
 
@@ -518,10 +518,10 @@ class DialogueTreeIllustrationGenerator:
 
     def save_image_and_metadata(
         self,
-        image: Image.Image,
+        image: Any,  # Use Any instead of Image.Image
         node_id: str,
         metadata: Dict[str, Any],
-        upscaled_image: Optional[Image.Image] = None,
+        upscaled_image: Optional[Any] = None,  # Use Any instead of Image.Image
     ) -> str:
         """
         Save generated image and metadata to disk.
