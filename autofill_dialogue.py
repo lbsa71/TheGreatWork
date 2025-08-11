@@ -384,6 +384,41 @@ Examples:
         help="Starting node ID for debugger (default: auto-detect root)",
     )
 
+    # Image generation arguments
+    parser.add_argument(
+        "--generate-images",
+        action="store_true", 
+        help="Generate illustrations for dialogue nodes using Stable Diffusion XL",
+    )
+    
+    parser.add_argument(
+        "--images-dir",
+        type=str,
+        default="images",
+        help="Directory to save generated images (default: images)",
+    )
+    
+    parser.add_argument(
+        "--image-width",
+        type=int,
+        default=768,
+        help="Image width for generation (default: 768)",
+    )
+    
+    parser.add_argument(
+        "--image-height", 
+        type=int,
+        default=768,
+        help="Image height for generation (default: 768)",
+    )
+    
+    parser.add_argument(
+        "--inference-steps",
+        type=int,
+        default=25,
+        help="Number of inference steps for image generation (default: 25)",
+    )
+
     args = parser.parse_args()
 
     setup_logging(args.verbose)
@@ -429,7 +464,42 @@ Examples:
         return 1
 
     # Process the tree
-    if autofiller.process_tree():
+    success = autofiller.process_tree()
+    
+    # Generate illustrations if requested
+    if args.generate_images:
+        logger.info("Starting image generation for dialogue nodes")
+        try:
+            # Load the updated tree
+            tree_manager = DialogueTreeManager(tree_file)
+            tree = tree_manager.load_tree()
+            
+            # Generate illustrations
+            generation_kwargs = {
+                "width": args.image_width,
+                "height": args.image_height,
+                "num_inference_steps": args.inference_steps,
+            }
+            
+            generated_count, stats = tree.generate_illustrations(
+                images_dir=args.images_dir,
+                max_nodes=args.max_nodes,
+                **generation_kwargs
+            )
+            
+            # Save updated tree with illustration paths
+            if generated_count > 0:
+                tree_manager.save_tree(tree)
+                logger.info(f"Generated {generated_count} illustrations and updated tree")
+            
+            # Print statistics
+            stats.print_statistics()
+            
+        except Exception as e:
+            logger.error(f"Image generation failed: {e}")
+            success = False
+
+    if success:
         logger.info("Dialogue tree autofill completed successfully!")
         return 0
     else:

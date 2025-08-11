@@ -338,6 +338,70 @@ class DialogueTree:
                 )
                 self.params[param_name] = 0
 
+    def generate_illustrations(
+        self,
+        images_dir: str = "images",
+        style_tokens: Optional[List[str]] = None,
+        max_nodes: Optional[int] = None,
+        **generation_kwargs: Any,
+    ) -> Tuple[int, Any]:
+        """
+        Generate illustrations for nodes without illustrations using BFS.
+
+        Args:
+            images_dir: Directory to save generated images
+            style_tokens: Additional style tokens for better generation
+            max_nodes: Maximum number of nodes to process
+            **generation_kwargs: Additional arguments for image generation
+
+        Returns:
+            Tuple of (number of illustrations generated, generation statistics)
+        """
+        from pathlib import Path
+        
+        try:
+            from .image_generation import generate_illustrations_for_nodes
+        except ImportError:
+            logger.error("Image generation module not available. Install required dependencies.")
+            from .image_generation import ImageGenerationStats
+            return 0, ImageGenerationStats()
+
+        # Use scene context for prompt building
+        context = self.scene.copy() if self.scene else {}
+        
+        # Add rules as context if available
+        if self.rules:
+            for key, value in self.rules.items():
+                if key not in context:
+                    context[key] = value
+
+        return generate_illustrations_for_nodes(
+            tree_nodes=self.nodes,
+            context=context,
+            images_dir=Path(images_dir),
+            style_tokens=style_tokens,
+            max_nodes=max_nodes,
+            **generation_kwargs,
+        )
+
+    def find_nodes_without_illustrations(self) -> List[str]:
+        """
+        Find all nodes that don't have illustrations using breadth-first search.
+
+        Returns:
+            List of node IDs without illustrations, in BFS order
+        """
+        try:
+            from .image_generation import DialogueTreeIllustrationGenerator, StableDiffusionXLGenerator
+        except ImportError:
+            logger.warning("Image generation module not available")
+            return []
+
+        # Create a temporary generator just for the BFS logic
+        temp_generator = StableDiffusionXLGenerator()
+        illustration_gen = DialogueTreeIllustrationGenerator(temp_generator)
+        return illustration_gen.find_nodes_without_illustrations(self.nodes)
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the tree to a dictionary representation."""
         result = {"nodes": self.nodes, "params": self.params}

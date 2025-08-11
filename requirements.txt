@@ -1,5 +1,16 @@
 ollama>=0.1.0
 
+# Image generation dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+diffusers>=0.21.0
+transformers>=4.34.0
+accelerate>=0.21.0
+xformers>=0.0.22
+Pillow>=10.0.0
+realesrgan>=0.3.0
+safetensors>=0.3.3
+
 # Development dependencies
 black>=23.0.0
 flake8>=6.0.0
