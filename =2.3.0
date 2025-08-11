@@ -15,13 +15,12 @@ Collecting werkzeug>=3.1.0 (from flask)
   Downloading werkzeug-3.1.3-py3-none-any.whl.metadata
      - 3.7 kB ? 0:00:00
 Downloading flask-3.1.1-py3-none-any.whl
-   - 103.3 kB 184.5 MB/s 0:00:00
+   - 103.3 kB 165.4 MB/s 0:00:00
 Downloading blinker-1.9.0-py3-none-any.whl
    - 8.5 kB ? 0:00:00
 Downloading itsdangerous-2.2.0-py3-none-any.whl
-   - 16.2 kB 22.2 MB/s 0:00:00
+   - 16.2 kB 58.8 MB/s 0:00:00
 Downloading werkzeug-3.1.3-py3-none-any.whl
-   - 224.5 kB 146.4 MB/s 0:00:00
+   - 224.5 kB 176.6 MB/s 0:00:00
 Installing collected packages: werkzeug, itsdangerous, blinker, flask
-
 Successfully installed blinker-1.9.0 flask-3.1.1 itsdangerous-2.2.0 werkzeug-3.1.3

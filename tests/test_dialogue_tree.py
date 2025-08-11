@@ -263,6 +263,53 @@ class TestDialogueTree:
 
         assert history == expected_history
 
+    def test_calculate_dialogue_depth_simple_chain(self) -> None:
+        """Test calculating dialogue depth for a simple chain."""
+        # Create a simple chain: start -> node1 -> node2
+        nodes = {
+            "start": {
+                "situation": "The kingdom is in chaos.",
+                "choices": [
+                    {"text": "Seek the wise council", "next": "node1"},
+                    {"text": "Take action immediately", "next": "other"},
+                ],
+            },
+            "node1": {
+                "situation": "You meet with the council.",
+                "choices": [
+                    {"text": "Ask for advice", "next": "node2"},
+                ],
+            },
+            "node2": None,
+            "other": None,
+        }
+        tree = DialogueTree(nodes, {"loyalty": 50.0})
+
+        # Test depth for each node
+        assert tree.calculate_dialogue_depth("start") == 0  # Root node
+        assert tree.calculate_dialogue_depth("node1") == 1  # 1 step from start
+        assert tree.calculate_dialogue_depth("node2") == 2  # 2 steps from start
+        assert tree.calculate_dialogue_depth("other") == 1  # 1 step from start
+
+    def test_calculate_dialogue_depth_no_parent(self) -> None:
+        """Test calculating dialogue depth for root node or disconnected node."""
+        tree = DialogueTree(self.nodes, self.params)
+
+        # Test depth for start node (root)
+        assert tree.calculate_dialogue_depth("start") == 0
+
+        # Test depth for disconnected node
+        tree.nodes["orphan"] = None
+        assert tree.calculate_dialogue_depth("orphan") == 0
+
+    def test_calculate_dialogue_depth_single_step(self) -> None:
+        """Test calculating dialogue depth with one step."""
+        tree = DialogueTree(self.nodes, self.params)
+
+        # Test depth for first level node
+        depth = tree.calculate_dialogue_depth("node1")
+        assert depth == 1
+
 
 class TestDialogueTreeManager:
     """Tests for DialogueTreeManager class."""

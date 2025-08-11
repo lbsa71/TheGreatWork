@@ -30,6 +30,7 @@ class PromptGenerator:
         dialogue_history: Optional[str] = None,
         rules: Optional[Dict[str, Any]] = None,
         scene: Optional[Dict[str, Any]] = None,
+        dialogue_depth: Optional[int] = None,
     ) -> str:
         """
         Generate a prompt for creating a new dialogue node.
@@ -41,6 +42,7 @@ class PromptGenerator:
             dialogue_history: Optional historical context from previous nodes
             rules: Optional stylistic rules (language, tone, voice)
             scene: Optional world-building information
+            dialogue_depth: Optional depth in the dialogue tree (number of steps from root)
 
         Returns:
             Formatted prompt string
@@ -62,6 +64,16 @@ class PromptGenerator:
         # Include dialogue history if available
         if dialogue_history:
             prompt_parts.extend(["", dialogue_history, ""])
+
+        # Include dialogue depth if available
+        if dialogue_depth is not None:
+            prompt_parts.extend(
+                [
+                    f"DIALOGUE DEPTH: {dialogue_depth}",
+                    f"(This node is {dialogue_depth} steps deep from the dialogue root. Use this to decide if it's time to introduce new topics or bring the conversation towards resolution.)",
+                    "",
+                ]
+            )
 
         prompt_parts.extend(
             [
@@ -185,6 +197,7 @@ class NodeGenerator:
         dialogue_history: Optional[str] = None,
         rules: Optional[Dict[str, Any]] = None,
         scene: Optional[Dict[str, Any]] = None,
+        dialogue_depth: Optional[int] = None,
         max_retries: int = 3,
     ) -> Optional[Dict[str, Any]]:
         """
@@ -197,13 +210,20 @@ class NodeGenerator:
             dialogue_history: Optional historical context from previous nodes
             rules: Optional stylistic rules (language, tone, voice)
             scene: Optional world-building information
+            dialogue_depth: Optional depth in the dialogue tree (number of steps from root)
             max_retries: Maximum number of retry attempts
 
         Returns:
             Generated node data or None if generation failed
         """
         prompt = self.prompt_generator.generate_node_prompt(
-            parent_situation, choice_text, params, dialogue_history, rules, scene
+            parent_situation,
+            choice_text,
+            params,
+            dialogue_history,
+            rules,
+            scene,
+            dialogue_depth,
         )
 
         # Debug: Log the prompt being sent

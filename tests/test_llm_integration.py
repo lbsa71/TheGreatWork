@@ -137,6 +137,33 @@ class TestPromptGenerator:
         assert "WORLD-BUILDING CONTEXT:" in prompt
         assert "Setting: Medieval kingdom" in prompt
 
+    def test_generate_node_prompt_with_depth(self) -> None:
+        """Test prompt generation with dialogue depth."""
+        parent_situation = "The king is dead."
+        choice_text = "Mourn publicly"
+        params = {"loyalty": 45, "ambition": 80}
+        dialogue_depth = 3
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params, dialogue_depth=dialogue_depth
+        )
+
+        assert "DIALOGUE DEPTH: 3" in prompt
+        assert "This node is 3 steps deep from the dialogue root" in prompt
+        assert "Use this to decide if it's time to introduce new topics" in prompt
+
+    def test_generate_node_prompt_without_depth(self) -> None:
+        """Test prompt generation without dialogue depth."""
+        parent_situation = "The king is dead."
+        choice_text = "Mourn publicly"
+        params = {"loyalty": 45, "ambition": 80}
+
+        prompt = PromptGenerator.generate_node_prompt(
+            parent_situation, choice_text, params
+        )
+
+        assert "DIALOGUE DEPTH" not in prompt
+
 
 class TestOllamaClient:
     """Tests for OllamaClient class."""
@@ -265,7 +292,7 @@ class TestNodeGenerator:
         # Verify
         assert result == node_data
         self.mock_prompt_gen.generate_node_prompt.assert_called_once_with(
-            "Parent situation", "Choice text", {"param": 1}, None, None, None
+            "Parent situation", "Choice text", {"param": 1}, None, None, None, None
         )
         self.mock_client.generate_content.assert_called_once_with("Test prompt")
 
