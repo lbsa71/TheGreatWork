@@ -123,10 +123,16 @@ class DialogueAutofiller:
                 logger.info(f"Processing null node: {null_node_id}")
 
                 if not self._process_node(tree, null_node_id):
-                    logger.warning(f"Failed to process node: {null_node_id} - skipping and continuing")
+                    logger.warning(
+                        f"Failed to process node: {null_node_id} - skipping and continuing"
+                    )
                     # Mark the node as failed by setting it to a special value
                     # This prevents infinite loops while allowing us to track failed nodes
-                    tree.nodes[null_node_id] = {"__failed__": True, "situation": "Generation failed", "choices": []}
+                    tree.nodes[null_node_id] = {
+                        "__failed__": True,
+                        "situation": "Generation failed",
+                        "choices": [],
+                    }
                     # Track the failed node
                     self.failed_nodes.append(null_node_id)
                     # Save the tree with the failed node marked
@@ -147,7 +153,7 @@ class DialogueAutofiller:
 
             # Final save
             self.tree_manager.save_tree(tree)
-            
+
             # Determine completion reason
             if self.max_nodes is not None and self.nodes_generated >= self.max_nodes:
                 logger.info(
@@ -155,14 +161,14 @@ class DialogueAutofiller:
                 )
             else:
                 logger.info("Generation completed: all nodes processed")
-            
+
             logger.info(f"Generated {self.nodes_generated} nodes total")
             if self.failed_nodes:
                 logger.info(f"Skipped {len(self.failed_nodes)} failed nodes")
-            
+
             # Print generation statistics
             self.print_statistics()
-            
+
             return True
 
         except DialogueTreeError as e:
@@ -211,7 +217,7 @@ class DialogueAutofiller:
 
         # Time the generation process
         start_time = time.time()
-        
+
         # Generate the node
         generated_node = self.node_generator.generate_node(
             parent_situation=parent_situation,
@@ -221,7 +227,7 @@ class DialogueAutofiller:
             rules=tree.rules,
             scene=tree.scene,
         )
-        
+
         # Record generation time
         generation_time = time.time() - start_time
         self.generation_times.append(generation_time)
@@ -265,13 +271,13 @@ class DialogueAutofiller:
         logger.info("=" * 60)
         logger.info("GENERATION STATISTICS")
         logger.info("=" * 60)
-        
+
         if self.generation_times:
             total_time = sum(self.generation_times)
             mean_time = total_time / len(self.generation_times)
             min_time = min(self.generation_times)
             max_time = max(self.generation_times)
-            
+
             logger.info(f"Total nodes generated: {len(self.generation_times)}")
             logger.info(f"Total generation time: {total_time:.2f} seconds")
             logger.info(f"Mean generation time: {mean_time:.2f} seconds")
@@ -280,13 +286,13 @@ class DialogueAutofiller:
             logger.info(f"Average nodes per minute: {60 / mean_time:.1f}")
         else:
             logger.info("Total nodes generated: 0")
-        
+
         if self.failed_nodes:
             logger.info(f"Failed nodes: {len(self.failed_nodes)}")
             logger.info(f"Failed node IDs: {', '.join(self.failed_nodes)}")
         else:
             logger.info("Failed nodes: 0")
-            
+
         logger.info("=" * 60)
 
 

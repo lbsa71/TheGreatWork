@@ -84,14 +84,14 @@ class TestDialogueAutofiller:
         """Test statistics printing with generation times."""
         # Add some mock generation times
         self.autofiller.generation_times = [1.5, 2.0, 1.0, 3.5]
-        
+
         with patch("autofill_dialogue.logger") as mock_logger:
             self.autofiller.print_statistics()
-            
+
             # Check that statistics were logged
             calls = mock_logger.info.call_args_list
             call_strings = [call[0][0] for call in calls]
-            
+
             # Should contain key statistics
             assert any("Total nodes generated: 4" in call for call in call_strings)
             assert any("Mean generation time: 2.00" in call for call in call_strings)
@@ -103,14 +103,14 @@ class TestDialogueAutofiller:
         # Add some mock generation times and failed nodes
         self.autofiller.generation_times = [1.5, 2.0]
         self.autofiller.failed_nodes = ["node1", "node2"]
-        
+
         with patch("autofill_dialogue.logger") as mock_logger:
             self.autofiller.print_statistics()
-            
+
             # Check that statistics were logged
             calls = mock_logger.info.call_args_list
             call_strings = [call[0][0] for call in calls]
-            
+
             # Should contain key statistics
             assert any("Total nodes generated: 2" in call for call in call_strings)
             assert any("Failed nodes: 2" in call for call in call_strings)
@@ -145,14 +145,18 @@ class TestDialogueAutofiller:
         }
         self.mock_node_generator.generate_node.return_value = generated_node
 
-        with patch("autofill_dialogue.validate_generated_node", return_value=True), patch(
+        with patch(
+            "autofill_dialogue.validate_generated_node", return_value=True
+        ), patch(
             "autofill_dialogue.DialogueAutofiller.print_statistics"
         ) as mock_print_stats:
             result = self.autofiller.process_tree()
 
         assert result is True
         assert self.autofiller.nodes_generated == 1
-        assert len(self.autofiller.generation_times) == 1  # Should record generation time
+        assert (
+            len(self.autofiller.generation_times) == 1
+        )  # Should record generation time
         self.mock_tree_manager.load_tree.assert_called_once()
         self.mock_tree_manager.save_tree.assert_called()
         mock_print_stats.assert_called_once()  # Statistics should be printed
@@ -176,7 +180,10 @@ class TestDialogueAutofiller:
     def test_process_tree_node_generation_failure(self) -> None:
         """Test tree processing when node generation fails."""
         mock_tree = Mock()
-        mock_tree.find_first_null_node.side_effect = ["node1", None]  # First call finds node1, second finds none
+        mock_tree.find_first_null_node.side_effect = [
+            "node1",
+            None,
+        ]  # First call finds node1, second finds none
         mock_tree.find_parent_and_choice.return_value = (
             "start",
             {"text": "Choice", "next": "node1"},
@@ -188,7 +195,9 @@ class TestDialogueAutofiller:
         self.mock_tree_manager.create_backup.return_value = Path("backup.json")
         self.mock_node_generator.generate_node.return_value = None  # Generation fails
 
-        with patch("autofill_dialogue.DialogueAutofiller.print_statistics") as mock_print_stats:
+        with patch(
+            "autofill_dialogue.DialogueAutofiller.print_statistics"
+        ) as mock_print_stats:
             result = self.autofiller.process_tree()
 
         # Should continue processing and complete successfully
