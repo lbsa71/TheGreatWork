@@ -67,11 +67,13 @@ class PromptGenerator:
 
         # Include dialogue depth if available
         if dialogue_depth is not None:
-            prompt_parts.extend([
-                f"DIALOGUE DEPTH: {dialogue_depth}",
-                f"(This node is {dialogue_depth} steps deep from the dialogue root. Use this to decide if it's time to introduce new topics or bring the conversation towards resolution.)",
-                ""
-            ])
+            prompt_parts.extend(
+                [
+                    f"DIALOGUE DEPTH: {dialogue_depth}",
+                    f"(This node is {dialogue_depth} steps deep from the dialogue root. Use this to decide if it's time to introduce new topics or bring the conversation towards resolution.)",
+                    "",
+                ]
+            )
 
         prompt_parts.extend(
             [
@@ -215,7 +217,13 @@ class NodeGenerator:
             Generated node data or None if generation failed
         """
         prompt = self.prompt_generator.generate_node_prompt(
-            parent_situation, choice_text, params, dialogue_history, rules, scene, dialogue_depth
+            parent_situation,
+            choice_text,
+            params,
+            dialogue_history,
+            rules,
+            scene,
+            dialogue_depth,
         )
 
         # Debug: Log the prompt being sent

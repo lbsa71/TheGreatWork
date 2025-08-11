@@ -165,7 +165,6 @@ class TestPromptGenerator:
         assert "DIALOGUE DEPTH" not in prompt
 
 
-
 class TestOllamaClient:
     """Tests for OllamaClient class."""
 

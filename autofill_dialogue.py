@@ -214,7 +214,7 @@ class DialogueAutofiller:
         # Build dialogue history for this node
         dialogue_history = tree.build_dialogue_history(node_id)
         logger.debug(f"Dialogue history:\n{dialogue_history}")
-        
+
         # Calculate dialogue depth for this node
         dialogue_depth = tree.calculate_dialogue_depth(node_id)
         logger.debug(f"Dialogue depth: {dialogue_depth}")

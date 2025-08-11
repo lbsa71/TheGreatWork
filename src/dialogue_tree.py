@@ -141,33 +141,33 @@ class DialogueTree:
     def calculate_dialogue_depth(self, target_node_id: str) -> int:
         """
         Calculate the dialogue depth by counting steps from root to target node.
-        
+
         Args:
             target_node_id: The node to calculate depth for
-            
+
         Returns:
             The depth (number of steps from root to target node)
         """
         depth = 0
         current_node_id = target_node_id
-        
+
         # Backtrack through the tree to count steps
         while current_node_id:
             parent_info = self.find_parent_and_choice(current_node_id)
             if parent_info is None:
                 # We've reached the root or a disconnected node
                 break
-                
+
             depth += 1
             parent_id, choice = parent_info
             parent_node = self.get_node(parent_id)
-            
+
             if parent_node is None:
                 break
-                
+
             # Move to the parent for next iteration
             current_node_id = parent_id
-            
+
         return depth
 
     def generate_unique_node_id(self, suggested_id: str) -> str:
