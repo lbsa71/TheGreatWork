@@ -1,0 +1,50 @@
+{
+  "nodes": {
+    "start": {
+      "situation": "You find yourself standing at the entrance of an ancient, mysterious castle shrouded in mist. The heavy wooden doors are slightly ajar, creaking ominously in the wind.",
+      "choices": [
+        {
+          "text": "Enter the castle boldly",
+          "next": "castle_entrance"
+        },
+        {
+          "text": "Circle around to find another way in",
+          "next": "castle_side"
+        }
+      ],
+      "illustration": "images/start/illustration.png"
+    },
+    "castle_entrance": {
+      "situation": "Inside the castle, you discover a grand hall with towering pillars and flickering torches casting dancing shadows on ancient tapestries.",
+      "choices": [
+        {
+          "text": "Examine the mysterious tapestries",
+          "next": "tapestry_room"
+        },
+        {
+          "text": "Climb the spiral staircase",
+          "next": "tower_stairs"
+        }
+      ],
+      "illustration": "images/castle_entrance/illustration.png"
+    },
+    "castle_side": {
+      "situation": "Around the side of the castle, you discover an overgrown garden with a hidden entrance covered in thorny vines and glowing with ethereal light.",
+      "choices": [],
+      "illustration": "images/castle_side/illustration.png"
+    }
+  },
+  "scene": {
+    "setting": "A haunted medieval castle",
+    "time_period": "Medieval era",
+    "atmosphere": "Dark, mysterious, and magical"
+  },
+  "rules": {
+    "setting": "Gothic fantasy medieval castle",
+    "tone": "Mysterious and atmospheric"
+  },
+  "params": {
+    "difficulty": 1,
+    "magic_level": 2
+  }
+}

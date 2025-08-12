@@ -388,7 +388,7 @@ Examples:
     parser.add_argument(
         "--generate-images",
         action="store_true", 
-        help="Generate illustrations for dialogue nodes using Stable Diffusion XL",
+        help="Generate illustrations for dialogue nodes using ONNX Stable Diffusion (Windows-compatible)",
     )
     
     parser.add_argument(

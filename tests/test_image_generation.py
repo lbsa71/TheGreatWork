@@ -2,7 +2,7 @@
 """
 Tests for the image generation module.
 
-These tests cover the Stable Diffusion XL image generation functionality
+These tests cover the ONNX Stable Diffusion image generation functionality
 for dialogue tree nodes, including BFS node discovery, prompt building,
 and image saving operations.
 """
@@ -16,23 +16,25 @@ from typing import Dict, Any, List
 import pytest
 
 # Mock the image generation dependencies
-mock_torch = MagicMock()
-mock_diffusers = MagicMock()
+mock_numpy = MagicMock()
+mock_onnxruntime = MagicMock()
 mock_pil = MagicMock()
-mock_realesrgan = MagicMock()
+mock_cv2 = MagicMock()
+mock_transformers = MagicMock()
+mock_huggingface_hub = MagicMock()
 
 with patch.dict('sys.modules', {
-    'torch': mock_torch,
-    'diffusers': mock_diffusers,
+    'numpy': mock_numpy,
+    'onnxruntime': mock_onnxruntime,
     'PIL': mock_pil,
-    'realesrgan': mock_realesrgan,
-    'realesrgan.archs': MagicMock(),
-    'realesrgan.archs.srvgg_arch': MagicMock(),
+    'cv2': mock_cv2,
+    'transformers': mock_transformers,
+    'huggingface_hub': mock_huggingface_hub,
 }):
     # Set HAS_IMAGE_DEPS to True for testing
     from src.image_generation import (
         ImageGenerationStats,
-        StableDiffusionXLGenerator,
+        ONNXStableDiffusionGenerator,
         DialogueTreeIllustrationGenerator,
         generate_illustrations_for_nodes,
         ImageGenerationError,
@@ -137,7 +139,7 @@ class TestImageGenerationStats:
         assert "Failed generations: 1" in printed_text
 
 
-class TestStableDiffusionXLGenerator:
+class TestONNXStableDiffusionGenerator:
     """Test the SDXL generator class."""
 
     def setup_method(self) -> None:
@@ -153,7 +155,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_init_default_params(self) -> None:
         """Test generator initialization with default parameters."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         
         assert generator.model_id == "stabilityai/stable-diffusion-xl-base-1.0"
         assert generator.device == "cuda"
@@ -167,7 +169,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_init_custom_params(self) -> None:
         """Test generator initialization with custom parameters."""
-        generator = StableDiffusionXLGenerator(
+        generator = ONNXStableDiffusionGenerator(
             model_id="custom/model",
             device="cpu",
             torch_dtype=mock_torch.float32,
@@ -187,7 +189,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_initialize_success(self) -> None:
         """Test successful pipeline initialization."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         
         generator.initialize()
         
@@ -200,7 +202,7 @@ class TestStableDiffusionXLGenerator:
         """Test fallback to CPU when CUDA unavailable."""
         mock_torch.cuda.is_available.return_value = False
         
-        generator = StableDiffusionXLGenerator(device="cuda")
+        generator = ONNXStableDiffusionGenerator(device="cuda")
         generator.initialize()
         
         assert generator.device == "cpu"
@@ -214,7 +216,7 @@ class TestStableDiffusionXLGenerator:
         mock_diffusers.StableDiffusionXLPipeline.from_pretrained.return_value = self.mock_pipeline
         self.mock_pipeline.enable_xformers_memory_efficient_attention.side_effect = Exception("xFormers error")
         
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         generator.initialize()
         
         # Should still initialize successfully
@@ -223,7 +225,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_generate_image_success(self) -> None:
         """Test successful image generation."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         generator._is_initialized = True
         generator.pipeline = self.mock_pipeline
         
@@ -247,7 +249,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_generate_image_dimension_rounding(self) -> None:
         """Test image dimension rounding to multiples of 64."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         generator._is_initialized = True
         generator.pipeline = self.mock_pipeline
         
@@ -267,7 +269,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_generate_image_oom_fallback(self) -> None:
         """Test OOM error handling with resolution fallback.""" 
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         generator._is_initialized = True
         generator.pipeline = self.mock_pipeline
         
@@ -295,7 +297,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_generate_image_not_initialized(self) -> None:
         """Test image generation when not initialized."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         
         # Should auto-initialize
         mock_result = MagicMock()
@@ -312,7 +314,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_generate_image_pipeline_none(self) -> None:
         """Test error when pipeline is None."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         generator._is_initialized = True
         generator.pipeline = None
         
@@ -321,7 +323,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_upscale_image_no_upscaler(self) -> None:
         """Test image upscaling when upscaler unavailable."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         generator.upscaler = None
         
         mock_image = MagicMock()
@@ -331,7 +333,7 @@ class TestStableDiffusionXLGenerator:
 
     def test_cleanup(self) -> None:
         """Test resource cleanup."""
-        generator = StableDiffusionXLGenerator()
+        generator = ONNXStableDiffusionGenerator()
         generator.pipeline = self.mock_pipeline
         generator._is_initialized = True
         
@@ -594,7 +596,7 @@ class TestGenerateIllustrationsForNodes:
     """Test the main illustration generation function."""
 
     @patch('src.image_generation.HAS_IMAGE_DEPS', True)
-    @patch('src.image_generation.StableDiffusionXLGenerator')
+    @patch('src.image_generation.ONNXStableDiffusionGenerator')
     @patch('src.image_generation.DialogueTreeIllustrationGenerator')
     def test_generate_illustrations_success(self, mock_illust_gen_class, mock_gen_class) -> None:
         """Test successful illustration generation for multiple nodes."""

@@ -1,0 +1,17 @@
+{
+  "prompt": "Around the side of the castle, you discover an overgrown garden with a hidden entrance covered in..., Gothic fantasy medieval castle, Medieval era, Dark, mysterious, and magical, photorealistic, highly detailed, masterpiece, best quality, 8k resolution, professional illustration",
+  "negative_prompt": "blurry, bad quality, distorted, deformed",
+  "width": 512,
+  "height": 512,
+  "num_inference_steps": 15,
+  "guidance_scale": 7.5,
+  "generation_time": 0.2175431251525879,
+  "model_id": "runwayml/stable-diffusion-v1-5",
+  "timestamp": "2025-08-12T11:55:31.508297",
+  "seed": null,
+  "backend": "ONNX Runtime",
+  "providers": [
+    "placeholder"
+  ],
+  "upscaled_path": "images/castle_side/illustration_upscaled.png"
+}

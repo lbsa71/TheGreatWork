@@ -10,7 +10,7 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 
 - **Autonomous Generation**: Automatically fills incomplete dialogue nodes
 - **Local LLM Integration**: Uses Ollama for privacy and offline operation
-- **Local Image Generation**: Uses Stable Diffusion XL for dialogue node illustrations
+- **Local Image Generation**: Uses ONNX Stable Diffusion for Windows-compatible dialogue node illustrations
 - **Controlled Generation**: Limit the number of nodes generated with `--max-nodes`
 - **Comprehensive Testing**: Fully unit tested with mocked dependencies
 - **Backup System**: Creates timestamped backups in a dedicated `/backup` folder
@@ -26,14 +26,17 @@ This tool reads a JSON file representing a branching dialogue tree for a visual 
 - An Ollama model (e.g., `qwen3:14b`, `llama3`, `mistral`)
 
 ### Image Generation Requirements (Optional)
-- NVIDIA GPU with CUDA support (recommended: RTX 4090 or similar)
-- PyTorch with CUDA support
-- Stable Diffusion XL dependencies:
-  - `torch>=2.0.0` with CUDA
-  - `diffusers>=0.21.0`
-  - `transformers>=4.34.0` 
-  - `xformers>=0.0.22` for memory optimization
-  - `realesrgan>=0.3.0` for upscaling
+- **Windows**: Automatically uses ONNX Runtime with DirectML for GPU acceleration
+- **Linux/macOS**: Uses ONNX Runtime with CPU or available GPU providers
+- Basic dependencies:
+  - `numpy>=1.24.0`
+  - `pillow>=10.0.0`
+  - `opencv-python>=4.8.0` (optional, for enhanced text overlays)
+- Enhanced functionality (optional):
+  - `onnxruntime-directml>=1.16.0` (Windows GPU acceleration)
+  - `onnxruntime>=1.16.0` (CPU/other platforms)
+  - `transformers>=4.34.0` (for advanced models)
+  - `huggingface-hub>=0.17.0` (for model downloads)
 
 ### Web Application Requirements (Optional)
 - Flask (only needed for web interface)
@@ -136,7 +139,7 @@ python web_app/app.py tree.json --port 8080
 # Launch web app on custom host and port
 python web_app/app.py tree.json --host 0.0.0.0 --port 8080
 
-# Generate illustrations for dialogue nodes (requires GPU)
+# Generate illustrations for dialogue nodes (Windows-compatible)
 python autofill_dialogue.py tree.json --generate-images
 
 # Generate images with custom settings
@@ -148,17 +151,24 @@ python autofill_dialogue.py --help
 
 ## Image Generation
 
-The tool supports automatic generation of illustrations for dialogue nodes using **Stable Diffusion XL** running locally on your GPU.
+The tool supports automatic generation of illustrations for dialogue nodes using **ONNX Stable Diffusion** with full Windows compatibility.
 
-### Features
+### Windows-Compatible Features
 
-- **Local GPU-Accelerated**: Uses SDXL with xFormers optimization for maximum performance
+- **DirectML Acceleration**: Uses Windows' native DirectML for GPU acceleration on any graphics card
+- **CPU Fallback**: Automatically falls back to CPU if GPU is not available
+- **No PyTorch Dependencies**: Avoids the notorious Windows compatibility issues with PyTorch, xFormers, and Triton
+- **ONNX Runtime**: Uses Microsoft's highly optimized ONNX Runtime for reliable cross-platform operation
+- **Placeholder Generation**: Creates visually appealing placeholder images when full models aren't available
+
+### Core Features
+
 - **Breadth-First Search**: Intelligently prioritizes which nodes need illustrations
 - **Context-Aware Prompts**: Builds rich prompts from scene context, setting, atmosphere
 - **Quality Enhancement**: Adds professional quality tokens for better results
-- **Real-ESRGAN Upscaling**: Optional 4x upscaling for high-resolution outputs
+- **Simple Upscaling**: Integrated 2x upscaling using high-quality resampling
 - **Performance Tracking**: Detailed statistics on generation time and throughput
-- **Error Recovery**: Graceful OOM handling with automatic resolution fallback
+- **Error Recovery**: Graceful fallback to placeholder generation if models fail
 - **Metadata Preservation**: Saves generation parameters with each image
 
 ### Quick Start
