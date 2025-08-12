@@ -481,6 +481,13 @@ Examples:
                 "num_inference_steps": args.inference_steps,
             }
             
+            logger.info(f"Image generation parameters:")
+            logger.info(f"  - Resolution: {args.image_width}x{args.image_height}")
+            logger.info(f"  - Inference steps: {args.inference_steps}")
+            logger.info(f"  - Output directory: {args.images_dir}")
+            if args.max_nodes:
+                logger.info(f"  - Max nodes: {args.max_nodes}")
+            
             generated_count, stats = tree.generate_illustrations(
                 images_dir=args.images_dir,
                 max_nodes=args.max_nodes,
@@ -491,12 +498,26 @@ Examples:
             if generated_count > 0:
                 tree_manager.save_tree(tree)
                 logger.info(f"Generated {generated_count} illustrations and updated tree")
+                
+                # Create backup with illustrations
+                backup_path = tree_manager.create_backup(tree)
+                logger.info(f"Created backup with illustrations: {backup_path}")
             
             # Print statistics
             stats.print_statistics()
             
         except Exception as e:
-            logger.error(f"Image generation failed: {e}")
+            logger.error("=" * 60)
+            logger.error("IMAGE GENERATION FAILED")
+            logger.error("=" * 60)
+            logger.error(f"Error: {e}")
+            logger.error("")
+            logger.error("This error indicates an issue with the image generation setup.")
+            logger.error("Please check the error messages above for specific details.")
+            logger.error("The dialogue tree was processed successfully - only image generation failed.")
+            logger.error("=" * 60)
+            
+            # Set success to False to indicate partial failure
             success = False
 
     if success:

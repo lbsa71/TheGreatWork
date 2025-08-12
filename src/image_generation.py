@@ -208,173 +208,254 @@ class ONNXStableDiffusionGenerator:
             return ["CPUExecutionProvider"]
 
     def _download_onnx_model(self) -> Path:
-        """Download ONNX Stable Diffusion models from Hugging Face."""
+        """
+        Download ONNX Stable Diffusion models from Hugging Face.
+        
+        Returns:
+            Path to the downloaded model directory
+            
+        Raises:
+            ImageGenerationError: If model download fails
+        """
+        logger.debug("Attempting to download ONNX Stable Diffusion models...")
+        
+        if not HAS_ONNX_DEPS:
+            error_msg = (
+                "Cannot download models: Hugging Face Hub not available.\n"
+                "Install with: pip install huggingface-hub transformers"
+            )
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg)
+            
+        # Use a community ONNX conversion or convert from diffusers
+        onnx_model_id = "bes-dev/stable-diffusion-v1-4-onnx"
+        model_path = self._model_cache_dir / "stable-diffusion-onnx"
+        
+        logger.debug(f"Model ID: {onnx_model_id}")
+        logger.debug(f"Target path: {model_path}")
+        
         try:
-            if not HAS_ONNX_DEPS:
-                logger.info("Hugging Face Hub not available, using fallback model")
-                return self._create_fallback_model()
-                
-            logger.info("Downloading ONNX Stable Diffusion models...")
-            
-            # Download specific ONNX versions of Stable Diffusion models
-            # Use a community ONNX conversion or convert from diffusers
-            onnx_model_id = "bes-dev/stable-diffusion-v1-4-onnx"
-            
-            model_path = self._model_cache_dir / "stable-diffusion-onnx"
-            
             if not model_path.exists():
+                logger.info(f"Downloading ONNX model '{onnx_model_id}' to {model_path}")
+                logger.info("This may take several minutes on first run...")
+                
                 # Download the ONNX model files
                 snapshot_download(
                     repo_id=onnx_model_id,
                     local_dir=str(model_path),
                     local_dir_use_symlinks=False,
                 )
-                logger.info(f"Downloaded ONNX model to {model_path}")
+                logger.info(f"✓ Downloaded ONNX model to {model_path}")
             else:
                 logger.info(f"Using cached ONNX model at {model_path}")
                 
+            # Verify the download was successful
+            expected_files = [
+                "text_encoder/model.onnx",
+                "unet/model.onnx", 
+                "vae_decoder/model.onnx"
+            ]
+            
+            missing_files = []
+            for file_path in expected_files:
+                full_path = model_path / file_path
+                if not full_path.exists():
+                    missing_files.append(file_path)
+                    
+            if missing_files:
+                error_msg = (
+                    f"Model download incomplete. Missing files:\n"
+                    + "\n".join(f"  - {f}" for f in missing_files) +
+                    f"\nModel directory: {model_path}\n"
+                    "This suggests:\n"
+                    "  1. Download was interrupted\n"
+                    "  2. Repository structure changed\n"
+                    "  3. Network/permission issues\n"
+                    "To fix:\n"
+                    "  1. Delete the model directory and retry\n"
+                    "  2. Check internet connection\n"
+                    "  3. Try a different model repository"
+                )
+                logger.error(error_msg)
+                raise ImageGenerationError(error_msg)
+                
+            logger.info("✓ Model download verification passed")
             return model_path
             
         except Exception as e:
-            logger.error(f"Failed to download ONNX model: {e}")
-            # Fallback: create minimal models for testing
-            return self._create_fallback_model()
-
-    def _create_fallback_model(self) -> Path:
-        """Create a fallback model for testing when ONNX models aren't available."""
-        fallback_dir = self._model_cache_dir / "fallback"
-        fallback_dir.mkdir(exist_ok=True)
-        
-        logger.warning("Creating fallback model - images will be placeholder patterns")
-        return fallback_dir
+            error_msg = (
+                f"Failed to download ONNX model '{onnx_model_id}': {e}\n"
+                "Debug information:\n"
+                f"  - Target directory: {model_path}\n"
+                f"  - Cache directory writable: {os.access(self._model_cache_dir, os.W_OK)}\n"
+                f"  - Available space: {self._get_available_space(self._model_cache_dir)}\n"
+                "Common causes:\n"
+                "  1. Network connectivity issues\n"
+                "  2. Hugging Face Hub authentication required\n"
+                "  3. Insufficient disk space\n"
+                "  4. File system permissions\n"
+                "  5. Repository moved or deleted\n"
+                "To troubleshoot:\n"
+                "  1. Check internet connection\n"
+                "  2. Verify repository exists: https://huggingface.co/bes-dev/stable-diffusion-v1-4-onnx\n"
+                "  3. Free up disk space\n"
+                "  4. Check directory permissions\n"
+                "  5. Try: huggingface-cli login (if auth required)"
+            )
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg) from e
+            
+    def _get_available_space(self, path: Path) -> str:
+        """Get available disk space for debugging."""
+        try:
+            import shutil
+            total, used, free = shutil.disk_usage(str(path))
+            return f"{free // (1024**3)} GB free"
+        except Exception:
+            return "Unknown"
 
     def initialize(self) -> None:
-        """Load and initialize the ONNX Stable Diffusion pipeline."""
+        """
+        Load and initialize the ONNX Stable Diffusion pipeline.
+        
+        Raises:
+            ImageGenerationError: If initialization fails
+        """
         if self._is_initialized:
             return
 
+        logger.info("Initializing ONNX Stable Diffusion pipeline...")
+        logger.debug(f"Model ID: {self.model_id}")
+        logger.debug(f"Device: {self.device}")
+        logger.debug(f"Use DirectML: {self.use_directml}")
+        logger.debug(f"Providers: {self.providers}")
+        logger.debug(f"Cache directory: {self._model_cache_dir}")
+
         try:
-            logger.info("Loading ONNX Stable Diffusion pipeline...")
+            # Check basic dependencies first
+            if not HAS_ONNX_DEPS:
+                error_msg = (
+                    "Required ONNX dependencies are missing:\n"
+                    f"  - onnxruntime available: {ort is not None}\n"
+                    f"  - transformers available: {'transformers' in globals()}\n"
+                    f"  - huggingface_hub available: {'huggingface_hub' in globals()}\n"
+                    "Install missing dependencies with:\n"
+                    "  pip install onnxruntime-directml transformers huggingface-hub"
+                )
+                logger.error(error_msg)
+                raise ImageGenerationError(error_msg)
             
             # Download/locate ONNX models
+            logger.info("Attempting to download/locate ONNX models...")
             model_path = self._download_onnx_model()
+            logger.debug(f"Model path: {model_path}")
             
             # Load tokenizer
-            if HAS_ONNX_DEPS:
-                try:
-                    self.tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32")
-                except Exception as e:
-                    logger.warning(f"Could not load CLIP tokenizer: {e}")
-            else:
-                logger.info("Transformers not available, skipping tokenizer")
+            logger.debug("Loading CLIP tokenizer...")
+            try:
+                self.tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32")
+                logger.info("Successfully loaded CLIP tokenizer")
+            except Exception as e:
+                error_msg = f"Failed to load CLIP tokenizer: {e}"
+                logger.error(error_msg)
+                raise ImageGenerationError(error_msg) from e
                 
-            # Try to load ONNX models if available
+            # Try to load ONNX models
             text_encoder_path = model_path / "text_encoder" / "model.onnx"
             unet_path = model_path / "unet" / "model.onnx"
             vae_decoder_path = model_path / "vae_decoder" / "model.onnx"
             
-            if HAS_ONNX_DEPS:
-                try:
-                    if text_encoder_path.exists():
-                        self.text_encoder_session = ort.InferenceSession(
-                            str(text_encoder_path),
-                            providers=self.providers
-                        )
-                        logger.info("Loaded text encoder ONNX model")
-                        
-                    if unet_path.exists():
-                        self.unet_session = ort.InferenceSession(
-                            str(unet_path),
-                            providers=self.providers
-                        )
-                        logger.info("Loaded UNet ONNX model")
-                        
-                    if vae_decoder_path.exists():
-                        self.vae_decoder_session = ort.InferenceSession(
-                            str(vae_decoder_path),
-                            providers=self.providers
-                        )
-                        logger.info("Loaded VAE decoder ONNX model")
-                        
-                except Exception as e:
-                    logger.warning(f"Could not load ONNX models: {e}")
-                    logger.info("Will use fallback generation method")
-            else:
-                logger.info("ONNX Runtime not available, using placeholder generation")
-
-            self._is_initialized = True
-            logger.info("ONNX SD pipeline initialization complete")
-
-        except Exception as e:
-            raise ImageGenerationError(f"Failed to initialize ONNX SD pipeline: {e}")
-
-    def _create_placeholder_image(
-        self, 
-        width: int, 
-        height: int, 
-        prompt: str
-    ) -> Any:
-        """Create a placeholder image with text overlay."""
-        # Create base image with gradient
-        img_array = np.zeros((height, width, 3), dtype=np.uint8)
-        
-        # Create a nice gradient background
-        for y in range(height):
-            for x in range(width):
-                img_array[y, x] = [
-                    int(120 + (x / width) * 100),
-                    int(80 + (y / height) * 120),
-                    int(140 + ((x + y) / (width + height)) * 80)
-                ]
-        
-        # Convert to PIL Image
-        image = PILImage.fromarray(img_array, 'RGB')
-        
-        # Use OpenCV to add text if available
-        if HAS_CV2:
+            logger.debug(f"Looking for models at:")
+            logger.debug(f"  - Text encoder: {text_encoder_path} (exists: {text_encoder_path.exists()})")
+            logger.debug(f"  - UNet: {unet_path} (exists: {unet_path.exists()})")
+            logger.debug(f"  - VAE decoder: {vae_decoder_path} (exists: {vae_decoder_path.exists()})")
+            
+            missing_models = []
+            if not text_encoder_path.exists():
+                missing_models.append(f"text_encoder ({text_encoder_path})")
+            if not unet_path.exists():
+                missing_models.append(f"unet ({unet_path})")
+            if not vae_decoder_path.exists():
+                missing_models.append(f"vae_decoder ({vae_decoder_path})")
+                
+            if missing_models:
+                error_msg = (
+                    f"Required ONNX model files are missing:\n"
+                    + "\n".join(f"  - {model}" for model in missing_models) +
+                    f"\nModel directory: {model_path}\n"
+                    "This indicates:\n"
+                    "  1. Model download failed\n"
+                    "  2. Incorrect model format or repository\n"
+                    "  3. File system permissions issue\n"
+                    "To fix this:\n"
+                    "  1. Check internet connection\n"
+                    "  2. Verify model repository exists on Hugging Face\n"
+                    "  3. Clear cache directory and retry\n"
+                    "  4. Check disk space and permissions"
+                )
+                logger.error(error_msg)
+                raise ImageGenerationError(error_msg)
+            
+            # Load ONNX inference sessions
+            logger.info("Loading ONNX inference sessions...")
+            
             try:
-                # Add text overlay using OpenCV
-                img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+                logger.debug(f"Loading text encoder with providers: {self.providers}")
+                self.text_encoder_session = ort.InferenceSession(
+                    str(text_encoder_path),
+                    providers=self.providers
+                )
+                logger.info("✓ Loaded text encoder ONNX model")
                 
-                # Wrap text to fit image
-                words = prompt.split()[:8]  # Limit to first 8 words
-                text_lines = []
-                current_line = ""
+                logger.debug(f"Loading UNet with providers: {self.providers}")
+                self.unet_session = ort.InferenceSession(
+                    str(unet_path),
+                    providers=self.providers
+                )
+                logger.info("✓ Loaded UNet ONNX model")
                 
-                for word in words:
-                    if len(current_line + " " + word) < 15:
-                        current_line += " " + word if current_line else word
-                    else:
-                        if current_line:
-                            text_lines.append(current_line)
-                        current_line = word
-                        
-                if current_line:
-                    text_lines.append(current_line)
-                
-                # Add text lines
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = min(width, height) / 400.0
-                thickness = max(1, int(font_scale * 2))
-                
-                for i, line in enumerate(text_lines[:3]):  # Max 3 lines
-                    text_size = cv2.getTextSize(line, font, font_scale, thickness)[0]
-                    x = (width - text_size[0]) // 2
-                    y = height // 2 + (i - len(text_lines)//2) * int(text_size[1] * 1.5)
-                    
-                    # Add text shadow
-                    cv2.putText(img_cv, line, (x+2, y+2), font, font_scale, (0, 0, 0), thickness+1)
-                    cv2.putText(img_cv, line, (x, y), font, font_scale, (255, 255, 255), thickness)
-                
-                # Convert back to RGB PIL Image
-                image = PILImage.fromarray(cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB))
+                logger.debug(f"Loading VAE decoder with providers: {self.providers}")
+                self.vae_decoder_session = ort.InferenceSession(
+                    str(vae_decoder_path),
+                    providers=self.providers
+                )
+                logger.info("✓ Loaded VAE decoder ONNX model")
                 
             except Exception as e:
-                logger.warning(f"Could not add text overlay: {e}")
-        else:
-            logger.debug("OpenCV not available for text overlay")
-        
-        return image
+                error_msg = (
+                    f"Failed to load ONNX models with ONNX Runtime: {e}\n"
+                    f"Debug information:\n"
+                    f"  - ONNX Runtime version: {ort.__version__ if ort else 'Not available'}\n"
+                    f"  - Available providers: {ort.get_available_providers() if ort else 'Not available'}\n"
+                    f"  - Requested providers: {self.providers}\n"
+                    f"  - Model files exist: {text_encoder_path.exists()}, {unet_path.exists()}, {vae_decoder_path.exists()}\n"
+                    "This could indicate:\n"
+                    "  1. ONNX Runtime version incompatibility\n"
+                    "  2. Corrupted model files\n"
+                    "  3. Unsupported ONNX opset version\n"
+                    "  4. Provider (DirectML/CPU) not properly configured\n"
+                    "To troubleshoot:\n"
+                    "  1. Update ONNX Runtime: pip install -U onnxruntime-directml\n"
+                    "  2. Try CPU provider only: device='cpu'\n"
+                    "  3. Re-download models (clear cache directory)\n"
+                    "  4. Check model compatibility with ONNX Runtime version"
+                )
+                logger.error(error_msg)
+                raise ImageGenerationError(error_msg) from e
+
+            self._is_initialized = True
+            logger.info("✓ ONNX SD pipeline initialization complete")
+            logger.info("Ready for image generation")
+
+        except ImageGenerationError:
+            # Re-raise our own errors
+            raise
+        except Exception as e:
+            error_msg = f"Unexpected error during ONNX SD pipeline initialization: {e}"
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg) from e
+
+    # Placeholder image creation method removed - no fallback images allowed
 
     def generate_image(
         self,
@@ -402,8 +483,12 @@ class ONNXStableDiffusionGenerator:
         
         Returns:
             Tuple of (generated images, metadata dict)
+            
+        Raises:
+            ImageGenerationError: If image generation fails or models are not available
         """
         if not self._is_initialized:
+            logger.debug("Generator not initialized, calling initialize()")
             self.initialize()
 
         # Ensure dimensions are multiples of 64
@@ -413,34 +498,68 @@ class ONNXStableDiffusionGenerator:
         # Ensure minimum size
         width = max(256, width)
         height = max(256, height)
+        
+        logger.debug(f"Generating image with dimensions: {width}x{height}")
+        logger.debug(f"Prompt: {prompt}")
+        logger.debug(f"Negative prompt: {negative_prompt}")
+        logger.debug(f"Inference steps: {num_inference_steps}")
 
+        # Check if we have the required dependencies first
+        if not HAS_ONNX_DEPS:
+            error_msg = (
+                "ONNX Runtime dependencies are not available. Cannot generate images.\n"
+                "Required dependencies:\n"
+                "  - onnxruntime-directml (Windows GPU acceleration)\n"
+                "  - onnxruntime (CPU/other platforms)\n"
+                "  - transformers (for tokenizer)\n"
+                "  - huggingface-hub (for model downloads)\n"
+                "Install with: pip install onnxruntime-directml transformers huggingface-hub"
+            )
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg)
+
+        # Check if we have actual ONNX models loaded
+        if (self.text_encoder_session is None or 
+            self.unet_session is None or 
+            self.vae_decoder_session is None):
+            
+            error_msg = (
+                "ONNX Stable Diffusion models are not loaded. Cannot generate images.\n"
+                "Debug information:\n"
+                f"  - Text encoder loaded: {self.text_encoder_session is not None}\n"
+                f"  - UNet loaded: {self.unet_session is not None}\n"
+                f"  - VAE decoder loaded: {self.vae_decoder_session is not None}\n"
+                f"  - Model ID: {self.model_id}\n"
+                f"  - Cache directory: {self._model_cache_dir}\n"
+                f"  - Available providers: {self.providers}\n"
+                "This usually means:\n"
+                "  1. ONNX models failed to download from Hugging Face\n"
+                "  2. Models are not in the expected ONNX format\n"
+                "  3. ONNX Runtime failed to load the models\n"
+                "To fix this:\n"
+                "  1. Check your internet connection for model downloads\n"
+                "  2. Verify the model ID exists on Hugging Face\n"
+                "  3. Check ONNX Runtime installation\n"
+                "  4. Try clearing the model cache directory"
+            )
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg)
+
+        start_time = time.time()
+        
         try:
-            start_time = time.time()
-
-            # Check if we have actual ONNX models loaded
-            if (self.text_encoder_session is None or 
-                self.unet_session is None or 
-                self.vae_decoder_session is None):
-                
-                logger.info("ONNX models not available, using placeholder generation")
-                images = []
-                for _ in range(num_images_per_prompt):
-                    image = self._create_placeholder_image(width, height, prompt)
-                    images.append(image)
-                    
-            else:
-                # Use actual ONNX Stable Diffusion pipeline
-                images = self._run_onnx_pipeline(
-                    prompt=prompt,
-                    negative_prompt=negative_prompt,
-                    width=width,
-                    height=height,
-                    num_inference_steps=num_inference_steps,
-                    guidance_scale=guidance_scale,
-                    num_images_per_prompt=num_images_per_prompt,
-                    seed=seed,
-                )
-
+            # Use actual ONNX Stable Diffusion pipeline
+            images = self._run_onnx_pipeline(
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                width=width,
+                height=height,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                num_images_per_prompt=num_images_per_prompt,
+                seed=seed,
+            )
+            
             generation_time = time.time() - start_time
 
             # Create metadata
@@ -459,27 +578,31 @@ class ONNXStableDiffusionGenerator:
                 "providers": self.providers,
             }
 
-            logger.info(f"Generated {len(images)} image(s) in {generation_time:.2f}s")
+            logger.info(f"Successfully generated {len(images)} image(s) in {generation_time:.2f}s")
             return images, metadata
-
+            
         except Exception as e:
-            logger.error(f"Image generation failed: {e}")
-            # Fallback to placeholder
-            logger.info("Falling back to placeholder image generation")
-            images = [self._create_placeholder_image(width, height, prompt)]
-            
-            metadata = {
-                "prompt": prompt,
-                "width": width,
-                "height": height,
-                "generation_time": 0.1,
-                "model_id": "fallback",
-                "timestamp": datetime.now().isoformat(),
-                "error": str(e),
-                "backend": "Placeholder",
-            }
-            
-            return images, metadata
+            error_msg = (
+                f"ONNX Stable Diffusion pipeline failed: {e}\n"
+                "Debug information:\n"
+                f"  - Model: {self.model_id}\n"
+                f"  - Providers: {self.providers}\n"
+                f"  - Prompt length: {len(prompt)} characters\n"
+                f"  - Dimensions: {width}x{height}\n"
+                f"  - Inference steps: {num_inference_steps}\n"
+                "This could indicate:\n"
+                "  1. GPU memory insufficient for the requested resolution\n"
+                "  2. ONNX model corruption or format issues\n"
+                "  3. Provider (DirectML/CPU) compatibility problems\n"
+                "  4. Invalid generation parameters\n"
+                "To troubleshoot:\n"
+                "  1. Try reducing image resolution (e.g., 512x512)\n"
+                "  2. Reduce inference steps to 10-15\n"
+                "  3. Check GPU memory availability\n"
+                "  4. Try CPU provider by setting device='cpu'"
+            )
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg) from e
 
     def _run_onnx_pipeline(
         self,
@@ -492,17 +615,41 @@ class ONNXStableDiffusionGenerator:
         num_images_per_prompt: int,
         seed: Optional[int],
     ) -> List[Any]:
-        """Run the actual ONNX Stable Diffusion pipeline."""
-        # This would implement the full ONNX SD pipeline
-        # For now, return placeholder since ONNX SD models are complex to set up
-        logger.warning("Full ONNX pipeline not yet implemented, using enhanced placeholder")
+        """
+        Run the actual ONNX Stable Diffusion pipeline.
         
-        images = []
-        for _ in range(num_images_per_prompt):
-            image = self._create_placeholder_image(width, height, prompt)
-            images.append(image)
-            
-        return images
+        Raises:
+            ImageGenerationError: If the pipeline is not implemented or fails
+        """
+        error_msg = (
+            "Full ONNX Stable Diffusion pipeline is not yet implemented.\n"
+            "Current status:\n"
+            f"  - Text encoder session: {self.text_encoder_session is not None}\n"
+            f"  - UNet session: {self.unet_session is not None}\n"
+            f"  - VAE decoder session: {self.vae_decoder_session is not None}\n"
+            f"  - Tokenizer: {self.tokenizer is not None}\n"
+            f"  - Model cache: {self._model_cache_dir}\n"
+            "\n"
+            "The ONNX SD pipeline requires:\n"
+            "  1. Complete ONNX model files (text_encoder, unet, vae_decoder)\n"
+            "  2. Proper tokenizer integration\n"
+            "  3. Tensor operations for the diffusion process\n"
+            "  4. Scheduler implementation for denoising\n"
+            "\n"
+            "To implement image generation:\n"
+            "  1. Download ONNX SD models from Hugging Face\n"
+            "  2. Implement tensor preprocessing/postprocessing\n"
+            "  3. Add scheduler (DDPM, DPM-Solver, etc.)\n"
+            "  4. Handle text encoding and image decoding\n"
+            "\n"
+            "Alternative solutions:\n"
+            "  1. Use diffusers library with ONNX provider\n"
+            "  2. Integrate with Automatic1111 WebUI API\n"
+            "  3. Use ComfyUI with ONNX backend\n"
+            "  4. Call external image generation service"
+        )
+        logger.error(error_msg)
+        raise ImageGenerationError(error_msg)
 
     def upscale_image(self, image: Any) -> Optional[Any]:
         """
@@ -769,17 +916,27 @@ class DialogueTreeIllustrationGenerator:
 
         Returns:
             Relative path to generated image or None if generation failed
+            
+        Raises:
+            ImageGenerationError: If generation fails with detailed error message
         """
+        start_time = time.time()
+
+        # Build prompt from node situation and context
+        node_text = node_data.get("situation", "")
+        if not node_text.strip():
+            error_msg = f"Node {node_id} has no situation text to generate image from"
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg)
+            
+        prompt = self.build_prompt(node_text, context, style_tokens)
+
+        logger.info(f"Generating illustration for node {node_id}")
+        logger.debug(f"Node situation: {node_text}")
+        logger.debug(f"Built prompt: {prompt}")
+        logger.debug(f"Generation parameters: {generation_kwargs}")
+
         try:
-            start_time = time.time()
-
-            # Build prompt from node situation and context
-            node_text = node_data.get("situation", "")
-            prompt = self.build_prompt(node_text, context, style_tokens)
-
-            logger.info(f"Generating illustration for node {node_id}")
-            logger.debug(f"Prompt: {prompt}")
-
             # Generate image
             images, metadata = self.generator.generate_image(
                 prompt=prompt,
@@ -787,30 +944,60 @@ class DialogueTreeIllustrationGenerator:
             )
 
             if not images:
-                raise ImageGenerationError("No images generated")
+                error_msg = f"Image generation returned no images for node {node_id}"
+                logger.error(error_msg)
+                raise ImageGenerationError(error_msg)
 
             # Use first generated image
             main_image = images[0]
 
             # Optional upscaling
-            upscaled_image = self.generator.upscale_image(main_image)
+            upscaled_image = None
+            try:
+                upscaled_image = self.generator.upscale_image(main_image)
+                if upscaled_image:
+                    logger.debug(f"Successfully upscaled image for node {node_id}")
+                else:
+                    logger.debug(f"Upscaling skipped for node {node_id}")
+            except Exception as e:
+                logger.warning(f"Image upscaling failed for node {node_id}: {e}")
+                # Continue without upscaling
 
             # Save image and metadata
-            image_path = self.save_image_and_metadata(
-                main_image, node_id, metadata, upscaled_image
-            )
+            try:
+                image_path = self.save_image_and_metadata(
+                    main_image, node_id, metadata, upscaled_image
+                )
+            except Exception as e:
+                error_msg = f"Failed to save image for node {node_id}: {e}"
+                logger.error(error_msg)
+                raise ImageGenerationError(error_msg) from e
 
             # Record success
             generation_time = time.time() - start_time
             self.stats.add_generation(generation_time)
 
-            logger.info(f"Successfully generated illustration for {node_id} in {generation_time:.2f}s")
+            logger.info(f"✓ Successfully generated illustration for {node_id} in {generation_time:.2f}s")
+            logger.info(f"✓ Saved to: {image_path}")
             return image_path
 
-        except Exception as e:
-            logger.error(f"Failed to generate illustration for node {node_id}: {e}")
+        except ImageGenerationError:
+            # Re-raise our own errors with node context
+            generation_time = time.time() - start_time
             self.stats.add_failure(node_id)
-            return None
+            raise
+        except Exception as e:
+            # Wrap unexpected errors
+            generation_time = time.time() - start_time
+            self.stats.add_failure(node_id)
+            error_msg = (
+                f"Unexpected error generating illustration for node {node_id}: {e}\n"
+                f"Generation time before failure: {generation_time:.2f}s\n"
+                f"Prompt length: {len(prompt)} characters\n"
+                f"Parameters: {generation_kwargs}"
+            )
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg) from e
 
 
 def generate_illustrations_for_nodes(
@@ -834,12 +1021,29 @@ def generate_illustrations_for_nodes(
 
     Returns:
         Tuple of (number of illustrations generated, statistics)
+        
+    Raises:
+        ImageGenerationError: If image generation setup or processing fails
     """
     if not HAS_IMAGE_DEPS:
-        logger.error("Image generation dependencies not available")
-        return 0, ImageGenerationStats()
+        error_msg = (
+            "Image generation dependencies not available.\n"
+            "Required dependencies:\n"
+            "  - numpy>=1.24.0\n"
+            "  - pillow>=10.0.0\n"
+            "Optional dependencies for full functionality:\n"
+            "  - onnxruntime-directml>=1.16.0 (Windows GPU acceleration)\n"
+            "  - onnxruntime>=1.16.0 (CPU/other platforms)\n"
+            "  - transformers>=4.34.0 (for tokenizer)\n"
+            "  - huggingface-hub>=0.17.0 (for model downloads)\n"
+            "  - opencv-python>=4.8.0 (for enhanced image processing)\n"
+            "Install with: pip install numpy pillow onnxruntime-directml transformers huggingface-hub opencv-python"
+        )
+        logger.error(error_msg)
+        raise ImageGenerationError(error_msg)
 
-    # Initialize ONNX generator
+    # Initialize ONNX generator - this will raise detailed errors if it fails
+    logger.info("Initializing ONNX Stable Diffusion generator...")
     generator = ONNXStableDiffusionGenerator()
     
     # Initialize illustration generator
@@ -849,39 +1053,94 @@ def generate_illustrations_for_nodes(
     )
 
     try:
+        # Initialize the generator (downloads models, loads sessions, etc.)
+        logger.info("Preparing image generation pipeline...")
+        generator.initialize()
+        
         # Find nodes without illustrations using BFS
+        logger.info("Discovering nodes that need illustrations...")
         nodes_without_illustrations = illustration_generator.find_nodes_without_illustrations(tree_nodes)
         
+        if not nodes_without_illustrations:
+            logger.info("No nodes found that need illustrations")
+            return 0, illustration_generator.stats
+        
         # Limit nodes if specified
-        if max_nodes is not None:
+        if max_nodes is not None and len(nodes_without_illustrations) > max_nodes:
+            logger.info(f"Limiting generation to first {max_nodes} nodes (found {len(nodes_without_illustrations)} total)")
             nodes_without_illustrations = nodes_without_illustrations[:max_nodes]
 
-        logger.info(f"Generating illustrations for {len(nodes_without_illustrations)} nodes")
+        logger.info(f"Generating illustrations for {len(nodes_without_illustrations)} nodes:")
+        for i, node_id in enumerate(nodes_without_illustrations, 1):
+            logger.info(f"  {i}. {node_id}")
 
         # Generate illustrations
         generated_count = 0
-        for node_id in nodes_without_illustrations:
+        for i, node_id in enumerate(nodes_without_illustrations, 1):
             node_data = tree_nodes.get(node_id)
             if not isinstance(node_data, dict):
+                logger.warning(f"Skipping node {node_id}: not a valid node dictionary")
                 continue
 
-            # Generate illustration
-            image_path = illustration_generator.generate_illustration(
-                node_id=node_id,
-                node_data=node_data,
-                context=context,
-                style_tokens=style_tokens,
-                **generation_kwargs
-            )
+            logger.info(f"[{i}/{len(nodes_without_illustrations)}] Processing node: {node_id}")
 
-            if image_path:
+            try:
+                # Generate illustration - this will raise ImageGenerationError with details
+                image_path = illustration_generator.generate_illustration(
+                    node_id=node_id,
+                    node_data=node_data,
+                    context=context,
+                    style_tokens=style_tokens,
+                    **generation_kwargs
+                )
+
                 # Update node with illustration path
                 node_data["illustration"] = image_path
                 generated_count += 1
-                logger.info(f"Added illustration to node {node_id}: {image_path}")
+                logger.info(f"✓ [{i}/{len(nodes_without_illustrations)}] Added illustration to node {node_id}: {image_path}")
+
+            except ImageGenerationError as e:
+                # Log the detailed error but continue with other nodes
+                logger.error(f"✗ [{i}/{len(nodes_without_illustrations)}] Failed to generate illustration for node {node_id}:")
+                logger.error(f"    {str(e)}")
+                # Don't raise here - continue processing other nodes
+                continue
+            except Exception as e:
+                # Handle any unexpected errors
+                error_msg = f"Unexpected error processing node {node_id}: {e}"
+                logger.error(f"✗ [{i}/{len(nodes_without_illustrations)}] {error_msg}")
+                illustration_generator.stats.add_failure(node_id)
+                # Don't raise here - continue processing other nodes
+                continue
+
+        # Summary
+        total_requested = len(nodes_without_illustrations)
+        success_rate = (generated_count / total_requested * 100) if total_requested > 0 else 0
+        
+        logger.info("=" * 60)
+        logger.info("IMAGE GENERATION COMPLETE")
+        logger.info("=" * 60)
+        logger.info(f"Successfully generated: {generated_count}/{total_requested} images ({success_rate:.1f}%)")
+        if illustration_generator.stats.failed_nodes:
+            logger.info(f"Failed generations: {len(illustration_generator.stats.failed_nodes)}")
+            logger.info(f"Failed node IDs: {', '.join(illustration_generator.stats.failed_nodes)}")
+        
+        # If no images were generated successfully, this might indicate a systemic issue
+        if generated_count == 0 and total_requested > 0:
+            error_msg = (
+                f"Failed to generate any images out of {total_requested} attempts.\n"
+                "This indicates a systematic issue with the image generation setup.\n"
+                "Check the error messages above for details on what went wrong."
+            )
+            logger.error(error_msg)
+            raise ImageGenerationError(error_msg)
 
         return generated_count, illustration_generator.stats
 
     finally:
         # Cleanup resources
-        generator.cleanup()
+        try:
+            generator.cleanup()
+            logger.debug("Image generator resources cleaned up")
+        except Exception as e:
+            logger.warning(f"Error during generator cleanup: {e}")
