@@ -395,6 +395,41 @@ Examples:
         help="Starting node ID for debugger (default: auto-detect root)",
     )
 
+    # Image generation arguments
+    parser.add_argument(
+        "--generate-images",
+        action="store_true", 
+        help="Generate illustrations for dialogue nodes using ONNX Stable Diffusion (Windows-compatible)",
+    )
+    
+    parser.add_argument(
+        "--images-dir",
+        type=str,
+        default="images",
+        help="Directory to save generated images (default: images)",
+    )
+    
+    parser.add_argument(
+        "--image-width",
+        type=int,
+        default=768,
+        help="Image width for generation (default: 768)",
+    )
+    
+    parser.add_argument(
+        "--image-height", 
+        type=int,
+        default=768,
+        help="Image height for generation (default: 768)",
+    )
+    
+    parser.add_argument(
+        "--inference-steps",
+        type=int,
+        default=25,
+        help="Number of inference steps for image generation (default: 25)",
+    )
+
     args = parser.parse_args()
 
     setup_logging(args.verbose)
@@ -440,7 +475,63 @@ Examples:
         return 1
 
     # Process the tree
-    if autofiller.process_tree():
+    success = autofiller.process_tree()
+    
+    # Generate illustrations if requested
+    if args.generate_images:
+        logger.info("Starting image generation for dialogue nodes")
+        try:
+            # Load the updated tree
+            tree_manager = DialogueTreeManager(tree_file)
+            tree = tree_manager.load_tree()
+            
+            # Generate illustrations
+            generation_kwargs = {
+                "width": args.image_width,
+                "height": args.image_height,
+                "num_inference_steps": args.inference_steps,
+            }
+            
+            logger.info(f"Image generation parameters:")
+            logger.info(f"  - Resolution: {args.image_width}x{args.image_height}")
+            logger.info(f"  - Inference steps: {args.inference_steps}")
+            logger.info(f"  - Output directory: {args.images_dir}")
+            if args.max_nodes:
+                logger.info(f"  - Max nodes: {args.max_nodes}")
+            
+            generated_count, stats = tree.generate_illustrations(
+                images_dir=args.images_dir,
+                max_nodes=args.max_nodes,
+                **generation_kwargs
+            )
+            
+            # Save updated tree with illustration paths
+            if generated_count > 0:
+                tree_manager.save_tree(tree)
+                logger.info(f"Generated {generated_count} illustrations and updated tree")
+                
+                # Create backup with illustrations
+                backup_path = tree_manager.create_backup(tree)
+                logger.info(f"Created backup with illustrations: {backup_path}")
+            
+            # Print statistics
+            stats.print_statistics()
+            
+        except Exception as e:
+            logger.error("=" * 60)
+            logger.error("IMAGE GENERATION FAILED")
+            logger.error("=" * 60)
+            logger.error(f"Error: {e}")
+            logger.error("")
+            logger.error("This error indicates an issue with the image generation setup.")
+            logger.error("Please check the error messages above for specific details.")
+            logger.error("The dialogue tree was processed successfully - only image generation failed.")
+            logger.error("=" * 60)
+            
+            # Set success to False to indicate partial failure
+            success = False
+
+    if success:
         logger.info("Dialogue tree autofill completed successfully!")
         return 0
     else:

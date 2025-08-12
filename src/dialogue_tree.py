@@ -10,7 +10,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Set
 
 logger = logging.getLogger(__name__)
 
@@ -369,6 +369,136 @@ class DialogueTree:
                     f"Adding missing parameter '{param_name}' to root params with default value 0"
                 )
                 self.params[param_name] = 0
+
+    def generate_illustrations(
+        self,
+        images_dir: str = "images",
+        style_tokens: Optional[List[str]] = None,
+        max_nodes: Optional[int] = None,
+        **generation_kwargs: Any,
+    ) -> Tuple[int, Any]:
+        """
+        Generate illustrations for nodes without illustrations using BFS.
+
+        Args:
+            images_dir: Directory to save generated images
+            style_tokens: Additional style tokens for better generation
+            max_nodes: Maximum number of nodes to process
+            **generation_kwargs: Additional arguments for image generation
+
+        Returns:
+            Tuple of (number of illustrations generated, generation statistics)
+        """
+        from pathlib import Path
+        
+        try:
+            from .image_generation import generate_illustrations_for_nodes
+        except ImportError:
+            logger.error("Image generation module not available. Install required dependencies.")
+            from .image_generation import ImageGenerationStats
+            return 0, ImageGenerationStats()
+
+        # Use scene context for prompt building
+        context = self.scene.copy() if self.scene else {}
+        
+        # Add rules as context if available
+        if self.rules:
+            for key, value in self.rules.items():
+                if key not in context:
+                    context[key] = value
+
+        return generate_illustrations_for_nodes(
+            tree_nodes=self.nodes,
+            context=context,
+            images_dir=Path(images_dir),
+            style_tokens=style_tokens,
+            max_nodes=max_nodes,
+            **generation_kwargs,
+        )
+
+    def find_nodes_without_illustrations(self) -> List[str]:
+        """
+        Find all nodes that don't have illustrations using breadth-first search.
+
+        Returns:
+            List of node IDs without illustrations, in BFS order
+        """
+        try:
+            from .image_generation import DialogueTreeIllustrationGenerator, StableDiffusionXLGenerator
+            
+            # Create a temporary generator just for the BFS logic
+            temp_generator = StableDiffusionXLGenerator()
+            illustration_gen = DialogueTreeIllustrationGenerator(temp_generator)
+            return illustration_gen.find_nodes_without_illustrations(self.nodes)
+        except ImportError:
+            logger.warning("Image generation module not available")
+            return []
+        except Exception as e:
+            logger.warning(f"Could not initialize image generation: {e}")
+            # Fallback: simple BFS without illustration generator
+            return self._simple_bfs_without_illustrations()
+
+    def _simple_bfs_without_illustrations(self) -> List[str]:
+        """
+        Simple BFS implementation to find nodes without illustrations.
+        Used as fallback when image generation dependencies are not available.
+        """
+        from collections import deque
+
+        if not self.nodes:
+            return []
+
+        nodes_without_illustrations = []
+        queue = deque()
+        visited: Set[str] = set()
+
+        # Find root nodes (nodes not referenced by others)
+        referenced_nodes = set()
+        for node_data in self.nodes.values():
+            if isinstance(node_data, dict) and "choices" in node_data:
+                for choice in node_data["choices"]:
+                    if choice.get("next"):
+                        referenced_nodes.add(choice["next"])
+
+        # Start BFS from root nodes
+        for node_id in self.nodes.keys():
+            if node_id not in referenced_nodes:  # This is a root node
+                queue.append(node_id)
+
+        # If no clear root found, start with 'start' or first node
+        if not queue:
+            if "start" in self.nodes:
+                queue.append("start")
+            elif self.nodes:
+                queue.append(next(iter(self.nodes)))
+
+        # Perform BFS
+        while queue:
+            current_id = queue.popleft()
+            
+            if current_id in visited:
+                continue
+                
+            visited.add(current_id)
+            current_node = self.nodes.get(current_id)
+
+            # Skip null nodes
+            if current_node is None:
+                continue
+
+            # Check if node needs illustration
+            if isinstance(current_node, dict):
+                if not current_node.get("illustration"):
+                    nodes_without_illustrations.append(current_id)
+
+                # Add child nodes to queue
+                if "choices" in current_node:
+                    for choice in current_node["choices"]:
+                        next_node_id = choice.get("next")
+                        if next_node_id and next_node_id not in visited:
+                            queue.append(next_node_id)
+
+        return nodes_without_illustrations
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the tree to a dictionary representation."""
